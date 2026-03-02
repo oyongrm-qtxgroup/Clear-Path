@@ -13,18 +13,18 @@ A personal finance management app that helps you track debts, expenses, and savi
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Framework | React 19 + TypeScript |
-| Build | Vite 7 |
-| Styling | Tailwind CSS 4 + shadcn/ui (Radix) |
-| Routing | React Router v7 |
-| State / Data | TanStack React Query v5 |
-| Forms | React Hook Form + Zod validation |
-| Backend | Supabase (Auth, Database, Edge Functions) |
-| Monitoring | Sentry |
-| Charts | Recharts |
-| Testing | Vitest + Testing Library |
+| Layer        | Technology                                |
+| ------------ | ----------------------------------------- |
+| Framework    | React 19 + TypeScript                     |
+| Build        | Vite 7                                    |
+| Styling      | Tailwind CSS 4 + shadcn/ui (Radix)        |
+| Routing      | React Router v7                           |
+| State / Data | TanStack React Query v5                   |
+| Forms        | React Hook Form + Zod validation          |
+| Backend      | Supabase (Auth, Database, Edge Functions) |
+| Monitoring   | Sentry                                    |
+| Charts       | Recharts                                  |
+| Testing      | Vitest + Testing Library                  |
 
 ## Getting Started
 
@@ -53,12 +53,12 @@ Copy the example file and fill in your values:
 cp .env.example .env.local
 ```
 
-| Variable | Description |
-|----------|-------------|
-| `VITE_SUPABASE_URL` | Your Supabase project URL |
-| `VITE_SUPABASE_ANON_KEY` | Your Supabase publishable anon key |
-| `VITE_SENTRY_DSN` | Sentry DSN for error monitoring (optional) |
-| `VITE_APP_ENV` | App environment (`development`, `production`) |
+| Variable                 | Description                                   |
+| ------------------------ | --------------------------------------------- |
+| `VITE_SUPABASE_URL`      | Your Supabase project URL                     |
+| `VITE_SUPABASE_ANON_KEY` | Your Supabase publishable anon key            |
+| `VITE_SENTRY_DSN`        | Sentry DSN for error monitoring (optional)    |
+| `VITE_APP_ENV`           | App environment (`development`, `production`) |
 
 > **Important:** Never commit `.env.local` or any file containing real credentials. Only `.env.example` (with blank values) should be checked in.
 

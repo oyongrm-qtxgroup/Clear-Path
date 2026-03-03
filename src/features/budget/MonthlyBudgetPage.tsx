@@ -121,11 +121,6 @@ function IncomeBar({
     });
   }
 
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter") handleSave();
-    if (e.key === "Escape") setEditing(false);
-  }
-
   return (
     <Card>
       <CardContent className="flex items-center justify-between py-4">

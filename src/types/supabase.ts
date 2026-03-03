@@ -391,6 +391,35 @@ export type Database = {
           },
         ];
       };
+      budget_skipped_months: {
+        Row: {
+          id: string;
+          user_id: string;
+          month_year: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          month_year: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          month_year?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "budget_skipped_months_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -449,3 +478,9 @@ export type BudgetIncomeOverrideUpdate =
 export type BudgetExtra = Tables["budget_extras"]["Row"];
 export type BudgetExtraInsert = Tables["budget_extras"]["Insert"];
 export type BudgetExtraUpdate = Tables["budget_extras"]["Update"];
+
+export type BudgetSkippedMonth = Tables["budget_skipped_months"]["Row"];
+export type BudgetSkippedMonthInsert =
+  Tables["budget_skipped_months"]["Insert"];
+export type BudgetSkippedMonthUpdate =
+  Tables["budget_skipped_months"]["Update"];

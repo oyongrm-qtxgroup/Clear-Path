@@ -14,6 +14,7 @@ export type Database = {
           id: string;
           display_name: string | null;
           currency: string;
+          monthly_income: number;
           created_at: string;
           updated_at: string;
         };
@@ -21,6 +22,7 @@ export type Database = {
           id: string;
           display_name?: string | null;
           currency?: string;
+          monthly_income?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -28,6 +30,7 @@ export type Database = {
           id?: string;
           display_name?: string | null;
           currency?: string;
+          monthly_income?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -309,6 +312,85 @@ export type Database = {
           },
         ];
       };
+      budget_income_overrides: {
+        Row: {
+          id: string;
+          user_id: string;
+          month_year: string;
+          income_amount: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          month_year: string;
+          income_amount: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          month_year?: string;
+          income_amount?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "budget_income_overrides_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      budget_extras: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          amount: number;
+          month_year: string;
+          is_paid: boolean;
+          paid_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          amount: number;
+          month_year: string;
+          is_paid?: boolean;
+          paid_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          name?: string;
+          amount?: number;
+          month_year?: string;
+          is_paid?: boolean;
+          paid_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "budget_extras_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -357,3 +439,13 @@ export type SavingsGoalUpdate = Tables["savings_goals"]["Update"];
 export type SavingsLog = Tables["savings_logs"]["Row"];
 export type SavingsLogInsert = Tables["savings_logs"]["Insert"];
 export type SavingsLogUpdate = Tables["savings_logs"]["Update"];
+
+export type BudgetIncomeOverride = Tables["budget_income_overrides"]["Row"];
+export type BudgetIncomeOverrideInsert =
+  Tables["budget_income_overrides"]["Insert"];
+export type BudgetIncomeOverrideUpdate =
+  Tables["budget_income_overrides"]["Update"];
+
+export type BudgetExtra = Tables["budget_extras"]["Row"];
+export type BudgetExtraInsert = Tables["budget_extras"]["Insert"];
+export type BudgetExtraUpdate = Tables["budget_extras"]["Update"];

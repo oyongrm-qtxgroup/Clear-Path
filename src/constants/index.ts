@@ -56,6 +56,11 @@ export const QUERY_KEYS = {
     goals: ["savings", "goals"] as const,
     logs: (goalId: string) => ["savings", "logs", goalId] as const,
   },
+  budget: {
+    extras: (monthYear: string) => ["budget", "extras", monthYear] as const,
+    incomeOverride: (monthYear: string) =>
+      ["budget", "incomeOverride", monthYear] as const,
+  },
 } as const;
 
 // ---------------------------------------------------------------------------

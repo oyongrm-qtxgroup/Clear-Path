@@ -13,7 +13,9 @@ export function PageHeader({ title, description, action }: PageHeaderProps) {
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            {title}
+          </h1>
           {description && (
             <p className="text-muted-foreground text-sm">{description}</p>
           )}

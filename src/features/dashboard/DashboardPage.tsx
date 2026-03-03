@@ -1,7 +1,8 @@
 import { format } from "date-fns";
+import { Link } from "react-router-dom";
 
-import { useDashboardSummary } from "@/hooks";
-import { formatCurrency } from "@/lib/utils";
+import { useDashboardSummary, useProfile, useIncomeOverride } from "@/hooks";
+import { formatCurrency, getCurrentMonthYear } from "@/lib/utils";
 import { PageHeader, withErrorBoundary } from "@/components/common";
 import {
   Card,
@@ -91,6 +92,14 @@ function SnapshotSkeleton() {
 
 function DashboardPage() {
   const { data, isLoading } = useDashboardSummary();
+  const { profile } = useProfile();
+  const currentMonth = getCurrentMonthYear();
+  const { data: incomeOverride } = useIncomeOverride(currentMonth);
+
+  const effectiveIncome =
+    incomeOverride?.income_amount ?? profile?.monthly_income ?? 0;
+  const remainingBudget =
+    effectiveIncome - (data?.total_monthly_obligations ?? 0);
 
   return (
     <div className="space-y-6">
@@ -305,6 +314,72 @@ function DashboardPage() {
           </>
         ) : null}
       </div>
+
+      {/* ── Budget Summary ───────────────────────────────────────────── */}
+      {!isLoading && effectiveIncome > 0 && data && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Budget Summary</CardTitle>
+                <CardDescription>
+                  Monthly income vs. obligations
+                </CardDescription>
+              </div>
+              <Link
+                to="/budget"
+                className="text-sm font-medium text-primary hover:underline"
+              >
+                View Full Budget &rarr;
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <p className="text-sm text-muted-foreground">Income</p>
+                <p className="text-lg font-bold">
+                  {formatCurrency(effectiveIncome)}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Obligations</p>
+                <p className="text-lg font-bold">
+                  {formatCurrency(data.total_monthly_obligations)}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Remaining</p>
+                <p
+                  className={`text-lg font-bold ${
+                    remainingBudget >= 0
+                      ? "text-green-600 dark:text-green-400"
+                      : "text-red-500 dark:text-red-400"
+                  }`}
+                >
+                  {formatCurrency(remainingBudget)}
+                </p>
+              </div>
+            </div>
+            <Progress
+              value={
+                effectiveIncome > 0
+                  ? Math.min(
+                      (data.total_monthly_obligations / effectiveIncome) * 100,
+                      100,
+                    )
+                  : 0
+              }
+              className="mt-4 h-2"
+            />
+            <p className="text-xs text-muted-foreground mt-1 text-right">
+              {effectiveIncome > 0
+                ? `${Math.round((data.total_monthly_obligations / effectiveIncome) * 100)}% of income allocated`
+                : "Set your income in Settings"}
+            </p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

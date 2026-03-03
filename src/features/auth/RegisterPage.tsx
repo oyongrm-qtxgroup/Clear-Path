@@ -1,18 +1,12 @@
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link, useNavigate } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowLeft, Loader2, MailCheck, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 import { registerSchema, type RegisterForm } from "@/schemas/auth.schema";
 import { useAuth } from "@/hooks";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -23,11 +17,23 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { withErrorBoundary } from "@/components/common";
+import { AuthLayout } from "./AuthLayout";
+
+// ── Anti-bot constants ─────────────────────────────────────────────────────
+/** Minimum time (ms) a human would need to fill the form. */
+const MIN_SUBMIT_DELAY_MS = 3_000;
 
 function RegisterPage() {
-  const navigate = useNavigate();
   const { signUp } = useAuth();
+  const [submitted, setSubmitted] = useState(false);
+
+  // ── Bot / spam protection state ────────────────────────────────────────
+  /** Honeypot — invisible field that only bots fill in. */
+  const [honeypot, setHoneypot] = useState("");
+  /** Timestamp when the component mounted (timing check). */
+  const mountedAt = useRef(Date.now());
 
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
@@ -42,24 +48,103 @@ function RegisterPage() {
   const { isSubmitting } = form.formState;
 
   async function onSubmit(values: RegisterForm) {
-    await signUp(values.email, values.password, values.display_name);
-    toast.success("Check your email to confirm your account");
-    navigate("/login");
+    // ── Anti-bot checks ────────────────────────────────────────────────
+    if (honeypot) {
+      // Silently reject — don't reveal that we detected a bot
+      toast.success("Check your email to confirm your account");
+      setSubmitted(true);
+      return;
+    }
+
+    const elapsed = Date.now() - mountedAt.current;
+    if (elapsed < MIN_SUBMIT_DELAY_MS) {
+      // Form submitted suspiciously fast — likely automated
+      toast.success("Check your email to confirm your account");
+      setSubmitted(true);
+      return;
+    }
+
+    try {
+      const success = await signUp(
+        values.email,
+        values.password,
+        values.display_name,
+      );
+      if (success) setSubmitted(true);
+    } catch {
+      // signUp already shows a toast with the error message.
+    }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl">Create Account</CardTitle>
-          <CardDescription>
-            Fill in the details below to get started.
-          </CardDescription>
-        </CardHeader>
+    <AuthLayout>
+      {submitted ? (
+        /* ── Success / confirmation state ──────────────────────── */
+        <div className="flex flex-col items-center text-center">
+          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+            <MailCheck className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+          </div>
 
-        <CardContent>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">
+            Check your email
+          </h2>
+
+          <p className="text-muted-foreground mt-2 max-w-xs text-sm">
+            We sent a confirmation link to{" "}
+            <span className="text-foreground font-medium">
+              {form.getValues("email")}
+            </span>
+            . Click the link in the email to activate your account.
+          </p>
+
+          <p className="text-muted-foreground mt-4 text-xs">
+            Didn&apos;t get it? Check your spam folder or try signing up again
+            in a few minutes.
+          </p>
+
+          <Separator className="my-6 w-full" />
+
+          <Link
+            to="/login"
+            className="inline-flex items-center gap-2 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Sign In
+          </Link>
+        </div>
+      ) : (
+        /* ── Registration form ────────────────────────────────── */
+        <>
+          {/* Header */}
+          <div className="mb-8 space-y-2">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground">
+              Create account
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              Start your journey to financial freedom today.
+            </p>
+          </div>
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {/* Honeypot — visually hidden, aria-hidden, tabindex -1 */}
+              <div
+                aria-hidden="true"
+                className="absolute h-0 w-0 overflow-hidden"
+                style={{ position: "absolute", left: "-9999px" }}
+              >
+                <label htmlFor="website">Website</label>
+                <input
+                  id="website"
+                  name="website"
+                  type="text"
+                  autoComplete="off"
+                  tabIndex={-1}
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                />
+              </div>
+
               {/* Display Name */}
               <FormField
                 control={form.control}
@@ -71,6 +156,7 @@ function RegisterPage() {
                       <Input
                         placeholder="John Doe"
                         disabled={isSubmitting}
+                        className="h-11"
                         {...field}
                       />
                     </FormControl>
@@ -91,6 +177,7 @@ function RegisterPage() {
                         type="email"
                         placeholder="you@example.com"
                         disabled={isSubmitting}
+                        className="h-11"
                         {...field}
                       />
                     </FormControl>
@@ -111,6 +198,7 @@ function RegisterPage() {
                         type="password"
                         placeholder="••••••••"
                         disabled={isSubmitting}
+                        className="h-11"
                         {...field}
                       />
                     </FormControl>
@@ -131,6 +219,7 @@ function RegisterPage() {
                         type="password"
                         placeholder="••••••••"
                         disabled={isSubmitting}
+                        className="h-11"
                         {...field}
                       />
                     </FormControl>
@@ -140,26 +229,35 @@ function RegisterPage() {
               />
 
               {/* Submit */}
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="animate-spin" />}
+              <Button
+                type="submit"
+                className="h-11 w-full bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring/30"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <UserPlus className="mr-2 h-4 w-4" />
+                )}
                 Create Account
               </Button>
             </form>
           </Form>
 
-          {/* Link */}
-          <div className="mt-4 text-center text-sm">
+          <Separator className="my-6" />
+
+          <p className="text-muted-foreground text-center text-sm">
             Already have an account?{" "}
             <Link
               to="/login"
-              className="text-primary underline underline-offset-4"
+              className="font-medium text-primary underline underline-offset-4 hover:text-primary/80"
             >
               Sign in
             </Link>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+          </p>
+        </>
+      )}
+    </AuthLayout>
   );
 }
 

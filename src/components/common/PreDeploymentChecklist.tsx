@@ -232,56 +232,6 @@ async function checkTodos(): Promise<CheckItem> {
   }
 }
 
-async function checkRateLimiter(): Promise<CheckItem> {
-  try {
-    // Invoke the edge function with an obviously-invalid body just to see if
-    // it responds (even with a 400 that proves it's deployed).
-    const { error } = await supabase.functions.invoke("rate-limiter", {
-      body: { action: "__ping", identifier: "__healthcheck" },
-    });
-
-    // A 400 "Invalid action" is expected — the function IS deployed.
-    // A FunctionsHttpError with a message proves the function responded.
-    if (error) {
-      const msg = error.message?.toLowerCase() ?? "";
-      if (
-        msg.includes("invalid action") ||
-        msg.includes("missing") ||
-        msg.includes("not allowed") ||
-        msg.includes("relay")
-      ) {
-        return {
-          id: "ratelimiter",
-          label: "Rate limiter edge function is deployed",
-          status: "pass",
-          detail:
-            "Function responded (returned a validation error as expected).",
-        };
-      }
-
-      return {
-        id: "ratelimiter",
-        label: "Rate limiter edge function is deployed",
-        status: "fail",
-        detail: `Edge function error: ${error.message}`,
-      };
-    }
-
-    return {
-      id: "ratelimiter",
-      label: "Rate limiter edge function is deployed",
-      status: "pass",
-    };
-  } catch {
-    return {
-      id: "ratelimiter",
-      label: "Rate limiter edge function is deployed",
-      status: "fail",
-      detail: "Could not reach the rate-limiter edge function.",
-    };
-  }
-}
-
 // ── Status icon helper ───────────────────────────────────────────────────────
 
 function StatusIcon({ status }: { status: CheckStatus }) {
@@ -329,11 +279,6 @@ function PreDeploymentChecklistInner() {
     },
     { id: "todos", label: "All TODO comments are resolved", status: "pending" },
     { id: "sentry", label: "Sentry DSN is configured", status: "pending" },
-    {
-      id: "ratelimiter",
-      label: "Rate limiter edge function is deployed",
-      status: "pending",
-    },
   ]);
   const [open, setOpen] = useState(false);
   const [running, setRunning] = useState(false);
@@ -361,17 +306,15 @@ function PreDeploymentChecklistInner() {
     upsert(checkSentryDsn());
 
     // Async checks — run in parallel
-    const [rls, consoleLogs, todos, rateLimiter] = await Promise.all([
+    const [rls, consoleLogs, todos] = await Promise.all([
       checkRlsPolicies(),
       checkConsoleLogs(),
       checkTodos(),
-      checkRateLimiter(),
     ]);
 
     upsert(rls);
     upsert(consoleLogs);
     upsert(todos);
-    upsert(rateLimiter);
     setRunning(false);
   }, [upsert]);
 

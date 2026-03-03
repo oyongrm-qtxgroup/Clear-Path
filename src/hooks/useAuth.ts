@@ -4,11 +4,6 @@ import { toast } from "sonner";
 
 import { supabase } from "@/lib/supabase";
 import { QUERY_KEYS } from "@/constants";
-import {
-  checkRateLimit,
-  formatRetryAfter,
-  type RateLimitAction,
-} from "@/api/rate-limiter.api";
 
 /**
  * Custom hook that wraps Supabase Auth and caches the session via React Query.
@@ -37,24 +32,10 @@ export function useAuth() {
   const session = data ?? null;
   const user = session?.user ?? null;
 
-  // ── Rate-limit gate ──────────────────────────────────────────────────────
-  const enforceRateLimit = useCallback(
-    async (action: RateLimitAction, identifier: string) => {
-      const result = await checkRateLimit(action, identifier);
-      if (!result.ok) {
-        const wait = formatRetryAfter(result.retryAfter);
-        throw new Error(`Too many attempts. Please try again in ${wait}.`);
-      }
-    },
-    [],
-  );
-
   // ── Sign in ──────────────────────────────────────────────────────────────
   const signIn = useCallback(
-    async (email: string, password: string) => {
+    async (email: string, password: string): Promise<boolean> => {
       try {
-        await enforceRateLimit("login", email);
-
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -65,81 +46,86 @@ export function useAuth() {
           queryKey: QUERY_KEYS.auth.user,
         });
         toast.success("Signed in successfully!");
+        return true;
       } catch (err) {
         const message = err instanceof Error ? err.message : "Sign-in failed";
         toast.error(message);
-        throw err;
+        return false;
       }
     },
-    [queryClient, enforceRateLimit],
+    [queryClient],
   );
 
   // ── Sign up (+ create profile) ──────────────────────────────────────────
   const signUp = useCallback(
-    async (email: string, password: string, displayName: string) => {
+    async (
+      email: string,
+      password: string,
+      displayName: string,
+    ): Promise<boolean> => {
       try {
-        await enforceRateLimit("register", email);
-
-        const { data: signUpData, error: signUpError } =
-          await supabase.auth.signUp({ email, password });
+        const { error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { display_name: displayName } },
+        });
         if (signUpError) throw signUpError;
 
-        // Create a profile row with the display name
-        const newUser = signUpData.user;
-        if (newUser) {
-          const { error: profileError } = await supabase
-            .from("profiles")
-            .insert({ id: newUser.id, display_name: displayName });
-          if (profileError) throw profileError;
-        }
+        // Profile row is auto-created by the on_auth_user_created trigger,
+        // which reads display_name from raw_user_meta_data.
 
         await queryClient.invalidateQueries({
           queryKey: QUERY_KEYS.auth.user,
         });
         toast.success("Account created! Check your email to confirm.");
+        return true;
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Sign-up failed";
+        const raw = err instanceof Error ? err.message : "Sign-up failed";
+
+        // Supabase returns "email rate limit exceeded" when too many
+        // confirmation emails are sent in a short window.
+        const message = raw.toLowerCase().includes("rate limit")
+          ? "Too many sign-up attempts. Please wait a few minutes and try again."
+          : raw;
+
         toast.error(message);
-        throw err;
+        return false;
       }
     },
-    [queryClient, enforceRateLimit],
+    [queryClient],
   );
 
   // ── Sign out ─────────────────────────────────────────────────────────────
-  const signOut = useCallback(async () => {
+  const signOut = useCallback(async (): Promise<boolean> => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
       queryClient.clear();
       toast.success("Signed out.");
+      return true;
     } catch (err) {
       const message = err instanceof Error ? err.message : "Sign-out failed";
       toast.error(message);
-      throw err;
+      return false;
     }
   }, [queryClient]);
 
   // ── Reset password ───────────────────────────────────────────────────────
-  const resetPassword = useCallback(
-    async (email: string) => {
-      try {
-        await enforceRateLimit("reset_password", email);
+  const resetPassword = useCallback(async (email: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) throw error;
 
-        const { error } = await supabase.auth.resetPasswordForEmail(email);
-        if (error) throw error;
-
-        toast.success("Password reset email sent — check your inbox.");
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Password reset failed";
-        toast.error(message);
-        throw err;
-      }
-    },
-    [enforceRateLimit],
-  );
+      toast.success("Password reset email sent — check your inbox.");
+      return true;
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Password reset failed";
+      toast.error(message);
+      return false;
+    }
+  }, []);
 
   return { user, session, loading, signIn, signUp, signOut, resetPassword };
 }

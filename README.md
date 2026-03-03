@@ -104,7 +104,6 @@ src/
 ├── types/          # TypeScript type definitions
 └── router.tsx      # Route definitions
 supabase/
-├── functions/      # Edge Functions (rate limiter)
 └── migrations/     # Database migrations & RLS policies
 ```
 
@@ -114,7 +113,6 @@ Apply the Supabase migrations in order:
 
 1. `001_initial_schema.sql` — Tables and base schema
 2. `002_rls_policies.sql` — Row Level Security policies
-3. `003_rate_limits.sql` — Rate limiting configuration
 
 ## License
 

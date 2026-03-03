@@ -1,5 +1,14 @@
 export { useApiHealth } from "./useApiHealth";
 export { useAuth } from "./useAuth";
+export {
+  useBudgetExtras,
+  useCreateBudgetExtra,
+  useDeleteBudgetExtra,
+  useToggleBudgetExtraPaid,
+  useIncomeOverride,
+  useUpsertIncomeOverride,
+  useDeleteIncomeOverride,
+} from "./useBudget";
 export { useDashboardSummary } from "./useDashboard";
 export { useDebtFreeConfetti } from "./useDebtFreeConfetti";
 export { useNetworkStatus } from "./useNetworkStatus";

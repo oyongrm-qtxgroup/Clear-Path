@@ -258,9 +258,13 @@ function parseRetryAfter(response: Response): number {
 /**
  * Handle a 401 Unauthorized response:
  * - Skip for Supabase Auth endpoints (they may legitimately return 401).
+ * - Skip for Edge Function endpoints (they may return non-2xx legitimately).
+ * - Skip if we are already on an auth page (prevents hard reload loops).
  * - Clear persisted auth tokens from localStorage.
  * - Redirect to `/login`.
  */
+let isRedirecting = false;
+
 function handleUnauthorized(input: RequestInfo | URL): void {
   const url =
     typeof input === "string"
@@ -271,6 +275,24 @@ function handleUnauthorized(input: RequestInfo | URL): void {
 
   // Auth endpoints return 401 for invalid credentials — that's expected
   if (url.includes("/auth/v1/")) return;
+
+  // Edge-function invocations may 401 due to gateway/auth issues —
+  // don't nuke the session for these.
+  if (url.includes("/functions/v1/")) return;
+
+  // Already on an auth page — redirecting to /login would hard-reload for no reason.
+  const path = window.location.pathname;
+  if (
+    path === "/login" ||
+    path === "/register" ||
+    path === "/forgot-password"
+  ) {
+    return;
+  }
+
+  // Prevent multiple simultaneous redirects
+  if (isRedirecting) return;
+  isRedirecting = true;
 
   // Remove Supabase auth tokens
   for (const key of Object.keys(localStorage)) {

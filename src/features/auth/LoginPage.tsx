@@ -1,17 +1,12 @@
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { Loader2, LogIn } from "lucide-react";
+import { toast } from "sonner";
 
 import { loginSchema, type LoginForm } from "@/schemas/auth.schema";
 import { useAuth } from "@/hooks";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -22,11 +17,21 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { withErrorBoundary } from "@/components/common";
+import { AuthLayout } from "./AuthLayout";
+
+// ── Anti-bot constants ─────────────────────────────────────────────────────
+/** Minimum time (ms) a human would need to fill the login form. */
+const MIN_SUBMIT_DELAY_MS = 2_000;
 
 function LoginPage() {
   const navigate = useNavigate();
   const { signIn } = useAuth();
+
+  // ── Bot / spam protection state ────────────────────────────────────────
+  const [honeypot, setHoneypot] = useState("");
+  const mountedAt = useRef(Date.now());
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -36,92 +41,137 @@ function LoginPage() {
   const { isSubmitting } = form.formState;
 
   async function onSubmit(values: LoginForm) {
-    await signIn(values.email, values.password);
-    navigate("/dashboard");
+    // ── Anti-bot checks ────────────────────────────────────────────────
+    if (honeypot) {
+      // Silently reject — fake a generic error so bots don't learn anything
+      toast.error("Invalid email or password");
+      return;
+    }
+
+    const elapsed = Date.now() - mountedAt.current;
+    if (elapsed < MIN_SUBMIT_DELAY_MS) {
+      toast.error("Invalid email or password");
+      return;
+    }
+
+    try {
+      const success = await signIn(values.email, values.password);
+      if (success) navigate("/dashboard");
+    } catch {
+      // signIn already shows a toast with the error message.
+    }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl">Sign In</CardTitle>
-          <CardDescription>
-            Enter your credentials to access your account.
-          </CardDescription>
-        </CardHeader>
+    <AuthLayout>
+      {/* Header */}
+      <div className="mb-8 space-y-2">
+        <h2 className="text-3xl font-bold tracking-tight text-foreground">
+          Welcome back
+        </h2>
+        <p className="text-muted-foreground text-sm">
+          Sign in to continue managing your finances.
+        </p>
+      </div>
 
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {/* Email */}
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="you@example.com"
-                        disabled={isSubmitting}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Password */}
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="••••••••"
-                        disabled={isSubmitting}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Submit */}
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="animate-spin" />}
-                Sign In
-              </Button>
-            </form>
-          </Form>
-
-          {/* Links */}
-          <div className="mt-4 text-center text-sm">
-            <Link
-              to="/forgot-password"
-              className="text-muted-foreground hover:text-primary underline underline-offset-4"
-            >
-              Forgot password?
-            </Link>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          {/* Honeypot — visually hidden, aria-hidden, tabindex -1 */}
+          <div
+            aria-hidden="true"
+            className="absolute h-0 w-0 overflow-hidden"
+            style={{ position: "absolute", left: "-9999px" }}
+          >
+            <label htmlFor="login-website">Website</label>
+            <input
+              id="login-website"
+              name="website"
+              type="text"
+              autoComplete="off"
+              tabIndex={-1}
+              value={honeypot}
+              onChange={(e) => setHoneypot(e.target.value)}
+            />
           </div>
-          <div className="mt-2 text-center text-sm">
-            Don&apos;t have an account?{" "}
-            <Link
-              to="/register"
-              className="text-primary underline underline-offset-4"
-            >
-              Sign up
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+          {/* Email */}
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    placeholder="you@example.com"
+                    disabled={isSubmitting}
+                    className="h-11"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Password */}
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Password</FormLabel>
+                  <Link
+                    to="/forgot-password"
+                    className="text-xs text-emerald-600 underline underline-offset-4 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
+                    tabIndex={-1}
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+                <FormControl>
+                  <Input
+                    type="password"
+                    placeholder="••••••••"
+                    disabled={isSubmitting}
+                    className="h-11"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Submit */}
+          <Button
+            type="submit"
+            className="h-11 w-full bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring/30"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <LogIn className="mr-2 h-4 w-4" />
+            )}
+            Sign In
+          </Button>
+        </form>
+      </Form>
+
+      <Separator className="my-6" />
+
+      <p className="text-muted-foreground text-center text-sm">
+        Don&apos;t have an account?{" "}
+        <Link
+          to="/register"
+          className="font-medium text-primary underline underline-offset-4 hover:text-primary/80"
+        >
+          Create one
+        </Link>
+      </p>
+    </AuthLayout>
   );
 }
 

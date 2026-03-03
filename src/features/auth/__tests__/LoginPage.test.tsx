@@ -18,14 +18,6 @@ vi.mock("react-router-dom", async () => {
 });
 
 // ---------------------------------------------------------------------------
-// Mock the rate-limiter to always allow requests
-// ---------------------------------------------------------------------------
-vi.mock("@/api/rate-limiter.api", () => ({
-  checkRateLimit: vi.fn().mockResolvedValue({ ok: true, remaining: 10 }),
-  formatRetryAfter: vi.fn((s: number) => `${s} seconds`),
-}));
-
-// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 function renderLoginPage() {

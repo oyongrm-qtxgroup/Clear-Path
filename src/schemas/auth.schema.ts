@@ -25,7 +25,28 @@ export const forgotPasswordSchema = z.object({
   email: z.string().email("Invalid email address"),
 });
 
+// ── Profile (Settings) ──────────────────────────────────────────────────────
+export const profileSchema = z.object({
+  display_name: z
+    .string()
+    .min(1, "Display name is required")
+    .max(100, "Display name is too long"),
+});
+
+// ── Change Password (Settings) ──────────────────────────────────────────────
+export const changePasswordSchema = z
+  .object({
+    new_password: z.string().min(8, "Password must be at least 8 characters"),
+    confirm_password: z.string().min(8, "Please confirm your password"),
+  })
+  .refine((data) => data.new_password === data.confirm_password, {
+    message: "Passwords do not match",
+    path: ["confirm_password"],
+  });
+
 // ── Inferred types ───────────────────────────────────────────────────────────
 export type LoginForm = z.infer<typeof loginSchema>;
 export type RegisterForm = z.infer<typeof registerSchema>;
 export type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
+export type ProfileForm = z.infer<typeof profileSchema>;
+export type ChangePasswordForm = z.infer<typeof changePasswordSchema>;

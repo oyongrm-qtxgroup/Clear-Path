@@ -1,6 +1,7 @@
 import { RouterProvider } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 
 import { Sentry } from "@/lib/sentry";
@@ -14,11 +15,13 @@ function App() {
     <Sentry.ErrorBoundary
       fallback={<p className="p-6 text-center">Something went wrong.</p>}
     >
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-        <Toaster richColors position="top-right" />
-        {isDev && <ReactQueryDevtools initialIsOpen={false} />}
-      </QueryClientProvider>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <QueryClientProvider client={queryClient}>
+          <RouterProvider router={router} />
+          <Toaster richColors position="top-right" />
+          {isDev && <ReactQueryDevtools initialIsOpen={false} />}
+        </QueryClientProvider>
+      </ThemeProvider>
     </Sentry.ErrorBoundary>
   );
 }

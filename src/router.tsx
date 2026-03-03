@@ -4,6 +4,7 @@ import { ProtectedRoute } from "@/components/common";
 import { AppLayout } from "@/components/layout";
 
 import { LoginPage, RegisterPage, ForgotPasswordPage } from "@/features/auth";
+import { MonthlyBudgetPage } from "@/features/budget";
 import { DashboardPage } from "@/features/dashboard";
 import { DebtsPage, DebtDetailPage } from "@/features/debts";
 import { ExpensesPage } from "@/features/expenses";
@@ -25,6 +26,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <Navigate to="/dashboard" replace /> },
           { path: "dashboard", element: <DashboardPage /> },
+          { path: "budget", element: <MonthlyBudgetPage /> },
           { path: "debts", element: <DebtsPage /> },
           { path: "debts/:id", element: <DebtDetailPage /> },
           { path: "expenses", element: <ExpensesPage /> },

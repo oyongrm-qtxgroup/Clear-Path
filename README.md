@@ -1,30 +1,36 @@
 # ClearPath
 
-A personal finance management app that helps you track debts, expenses, and savings — all in one place. Built with React, TypeScript, and Supabase.
+A personal finance management app that helps you track budgets, debts, expenses, and savings — all in one place. Built with React 19, TypeScript, and Supabase.
 
 ## Features
 
-- **Dashboard** — At-a-glance summary of your financial health with progress indicators and charts
-- **Debt Tracker** — Add, edit, and monitor debts with detailed views per entry
-- **Expense Tracker** — Log and categorize monthly expenses
-- **Savings Goals** — Set savings targets and track projections over time
+- **Dashboard** — At-a-glance summary of your financial health with circular progress indicators, charts, and month-by-month comparisons
+- **Monthly Budget** — Plan and track your monthly income, expenses, and debt payments with skip-month support and income overrides
+- **Debt Tracker** — Add, edit, and monitor debts with detailed views, payment recording, and undo capabilities
+- **Expense Tracker** — Log and categorize monthly expenses with check-off tracking
+- **Savings Goals** — Set savings targets, track contributions, view projections, and get a debt-free boost panel when all debts are cleared
 - **Authentication** — Secure login, registration, and password recovery via Supabase Auth
-- **Settings** — Manage your profile and preferences
+- **Settings** — Profile management, theme switching (light / dark / system), currency preferences, password changes, data export, and account deletion
+- **Offline Awareness** — Network status detection with automatic query pausing and toast notifications
+- **Error Monitoring** — Sentry integration for production error tracking and session replays
 
 ## Tech Stack
 
-| Layer        | Technology                                |
-| ------------ | ----------------------------------------- |
-| Framework    | React 19 + TypeScript                     |
-| Build        | Vite 7                                    |
-| Styling      | Tailwind CSS 4 + shadcn/ui (Radix)        |
-| Routing      | React Router v7                           |
-| State / Data | TanStack React Query v5                   |
-| Forms        | React Hook Form + Zod validation          |
-| Backend      | Supabase (Auth, Database, Edge Functions) |
-| Monitoring   | Sentry                                    |
-| Charts       | Recharts                                  |
-| Testing      | Vitest + Testing Library                  |
+| Layer        | Technology                                      |
+| ------------ | ----------------------------------------------- |
+| Framework    | React 19 + TypeScript 5.9                       |
+| Build        | Vite 7                                          |
+| Styling      | Tailwind CSS 4 + shadcn/ui (Radix)              |
+| Routing      | React Router v7                                 |
+| State / Data | TanStack React Query v5                         |
+| Forms        | React Hook Form 7 + Zod 4                       |
+| Backend      | Supabase (Auth, PostgreSQL, Row Level Security) |
+| Monitoring   | Sentry (error tracking + session replays)       |
+| Charts       | Recharts 3                                      |
+| Theming      | next-themes                                     |
+| Animations   | canvas-confetti (debt-free celebration)         |
+| Testing      | Vitest 4 + Testing Library                      |
+| Hosting      | Vercel                                          |
 
 ## Getting Started
 
@@ -91,20 +97,31 @@ npm run preview
 ```
 src/
 ├── api/            # API layer (Supabase calls)
+├── assets/         # SVG illustrations and static assets
 ├── components/
-│   ├── common/     # Shared components (ErrorBoundary, PageHeader, etc.)
+│   ├── common/     # Shared components (ErrorBoundary, PageHeader, MonthPicker, etc.)
 │   ├── layout/     # App shell layout
 │   └── ui/         # shadcn/ui primitives
-├── constants/      # App-wide constants
-├── features/       # Feature modules (auth, dashboard, debts, expenses, savings)
-├── hooks/          # Custom React hooks
-├── lib/            # Utilities (Supabase client, Sentry init, query client)
+├── constants/      # App-wide constants and query keys
+├── features/
+│   ├── auth/       # Login, Register, Forgot Password
+│   ├── budget/     # Monthly budget planner
+│   ├── dashboard/  # Dashboard with summary cards and charts
+│   ├── debts/      # Debt list, detail, and payment forms
+│   ├── expenses/   # Expense list and item components
+│   └── savings/    # Savings goals, forms, and debt-free boost
+├── hooks/          # Custom React hooks (auth, data, optimistic mutations, network status)
+├── lib/            # Utilities (Supabase client, Sentry init, query client, projections)
 ├── pages/          # Standalone pages (Settings, 404)
+├── plugins/        # Vite plugins (dev-checks)
 ├── schemas/        # Zod validation schemas
+├── test/           # Test setup
 ├── types/          # TypeScript type definitions
 └── router.tsx      # Route definitions
 supabase/
-└── migrations/     # Database migrations & RLS policies
+├── migrations/     # Database migrations & RLS policies
+├── seed.sql        # Sample seed data
+└── truncate.sql    # Truncation script for resets
 ```
 
 ## Database Setup
@@ -113,6 +130,19 @@ Apply the Supabase migrations in order:
 
 1. `001_initial_schema.sql` — Tables and base schema
 2. `002_rls_policies.sql` — Row Level Security policies
+3. `004_rls_verification_rpc.sql` — RPC for RLS verification
+4. `005_budget_features.sql` — Budget extras and income overrides
+5. `006_budget_skip_month.sql` — Skip-month support for budgets
+
+Optionally seed the database for development:
+
+```bash
+psql -f supabase/seed.sql
+```
+
+## Deployment
+
+The app is configured for **Vercel** with SPA rewrites. Push to your connected branch and Vercel handles the rest.
 
 ## License
 

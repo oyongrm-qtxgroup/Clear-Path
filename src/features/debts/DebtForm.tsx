@@ -14,6 +14,7 @@ import { useCreateDebt, useUpdateDebt } from "@/hooks/useDebts";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/common";
 import {
   Form,
   FormControl,
@@ -157,18 +158,11 @@ export default function DebtForm({ initialData, onSuccess }: DebtFormProps) {
             <FormItem>
               <FormLabel>Original Amount</FormLabel>
               <FormControl>
-                <div className="relative">
-                  <span className="text-muted-foreground pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm">
-                    PHP
-                  </span>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min={0}
-                    className="pl-12"
-                    {...field}
-                  />
-                </div>
+                <CurrencyInput
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -183,18 +177,11 @@ export default function DebtForm({ initialData, onSuccess }: DebtFormProps) {
             <FormItem>
               <FormLabel>Current Balance</FormLabel>
               <FormControl>
-                <div className="relative">
-                  <span className="text-muted-foreground pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm">
-                    PHP
-                  </span>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min={0}
-                    className="pl-12"
-                    {...field}
-                  />
-                </div>
+                <CurrencyInput
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -209,18 +196,11 @@ export default function DebtForm({ initialData, onSuccess }: DebtFormProps) {
             <FormItem>
               <FormLabel>Monthly Payment</FormLabel>
               <FormControl>
-                <div className="relative">
-                  <span className="text-muted-foreground pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm">
-                    PHP
-                  </span>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min={0}
-                    className="pl-12"
-                    {...field}
-                  />
-                </div>
+                <CurrencyInput
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -6,6 +6,7 @@ import {
   fetchDebts,
   fetchDebtById,
   fetchDebtPayments,
+  fetchAllDebtPaymentsForMonth,
   createDebt,
   updateDebt,
   deleteDebt,
@@ -41,6 +42,22 @@ export function useDebtPayments(debtId: string) {
     queryKey: QUERY_KEYS.debts.payments(debtId),
     queryFn: () => fetchDebtPayments(debtId),
     enabled: !!debtId,
+  });
+}
+
+/** Fetch all payment records for a given month (across all debts). */
+export function useAllDebtPaymentsForMonth(monthYear: string) {
+  return useQuery({
+    queryKey: ["budget", "debtPayments", monthYear],
+    queryFn: async () => {
+      const payments = await fetchAllDebtPaymentsForMonth(monthYear);
+      const record: Record<string, DebtPayment> = {};
+      for (const p of payments) {
+        record[p.debt_id] = p;
+      }
+      return record;
+    },
+    enabled: !!monthYear,
   });
 }
 
@@ -83,6 +100,7 @@ export function useDeleteDebt() {
     mutationFn: (id: string) => deleteDebt(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.debts.all });
+      toast.success("Debt deleted!");
     },
   });
 }
@@ -101,6 +119,7 @@ export const useRecordPayment = createOptimisticMutation<void, DebtPayment>({
   queryKeys: (payment) => [
     QUERY_KEYS.debts.all,
     QUERY_KEYS.debts.payments(payment.debt_id),
+    ["budget", "debtPayments", payment.month_year],
   ],
 
   onOptimisticUpdate: (payment, qc) => {
@@ -137,6 +156,17 @@ export const useRecordPayment = createOptimisticMutation<void, DebtPayment>({
         [payment, ...payments],
       );
     }
+
+    // Update budget debt payments for the month (used by the budget page)
+    const budgetKey = ["budget", "debtPayments", payment.month_year];
+    const budgetPayments =
+      qc.getQueryData<Record<string, DebtPayment>>(budgetKey);
+    if (budgetPayments) {
+      qc.setQueryData<Record<string, DebtPayment>>(budgetKey, {
+        ...budgetPayments,
+        [payment.debt_id]: payment,
+      });
+    }
   },
 
   successMessage: "Payment recorded!",
@@ -155,9 +185,10 @@ export const useUndoPayment = createOptimisticMutation<
 >({
   mutationFn: ({ debtId, monthYear }) => undoPayment(debtId, monthYear),
 
-  queryKeys: ({ debtId }) => [
+  queryKeys: ({ debtId, monthYear }) => [
     QUERY_KEYS.debts.all,
     QUERY_KEYS.debts.payments(debtId),
+    ["budget", "debtPayments", monthYear],
   ],
 
   onOptimisticUpdate: ({ debtId, monthYear }, qc) => {
@@ -195,6 +226,16 @@ export const useUndoPayment = createOptimisticMutation<
         QUERY_KEYS.debts.payments(debtId),
         payments.filter((p) => p.month_year !== monthYear),
       );
+    }
+
+    // Remove from budget debt payments for the month (used by the budget page)
+    const budgetKey = ["budget", "debtPayments", monthYear];
+    const budgetPayments =
+      qc.getQueryData<Record<string, DebtPayment>>(budgetKey);
+    if (budgetPayments) {
+      const updated = { ...budgetPayments };
+      delete updated[debtId];
+      qc.setQueryData<Record<string, DebtPayment>>(budgetKey, updated);
     }
   },
 

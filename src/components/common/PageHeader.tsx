@@ -1,7 +1,5 @@
 import type { ReactNode } from "react";
 
-import { Separator } from "@/components/ui/separator";
-
 interface PageHeaderProps {
   title: string;
   description?: ReactNode;
@@ -13,7 +11,7 @@ export function PageHeader({ title, description, action }: PageHeaderProps) {
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          <h1 className="text-2xl font-bold tracking-tight gradient-text">
             {title}
           </h1>
           {description && (
@@ -22,7 +20,7 @@ export function PageHeader({ title, description, action }: PageHeaderProps) {
         </div>
         {action && <div>{action}</div>}
       </div>
-      <Separator />
+      <div className="h-[2px] rounded-full bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] opacity-40" />
     </div>
   );
 }

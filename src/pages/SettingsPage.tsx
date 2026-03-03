@@ -29,7 +29,12 @@ import {
   type ProfileForm,
   type ChangePasswordForm,
 } from "@/schemas/auth.schema";
-import { PageHeader, ConfirmDialog } from "@/components/common";
+import {
+  PageHeader,
+  ConfirmDialog,
+  PasswordInput,
+  CurrencyInput,
+} from "@/components/common";
 import { withErrorBoundary } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -259,7 +264,7 @@ function IncomeSection() {
   const { profile } = useProfile();
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
-  const [incomeValue, setIncomeValue] = useState("");
+  const [incomeValue, setIncomeValue] = useState<number | string>("");
 
   // Sync profile data when loaded
   useEffect(() => {
@@ -271,7 +276,10 @@ function IncomeSection() {
   }, [profile]);
 
   async function handleSave() {
-    const amount = parseFloat(incomeValue) || 0;
+    const amount =
+      typeof incomeValue === "number"
+        ? incomeValue
+        : parseFloat(incomeValue) || 0;
     if (amount < 0) {
       toast.error("Income cannot be negative");
       return;
@@ -314,13 +322,10 @@ function IncomeSection() {
         <div className="flex items-end gap-3 max-w-xs">
           <div className="flex-1">
             <label className="text-sm font-medium">Amount</label>
-            <Input
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="e.g. 100000"
+            <CurrencyInput
+              placeholder="e.g. 100,000"
               value={incomeValue}
-              onChange={(e) => setIncomeValue(e.target.value)}
+              onChange={(val) => setIncomeValue(val)}
               className="mt-1.5"
             />
           </div>
@@ -439,8 +444,7 @@ function SecuritySection() {
                 <FormItem>
                   <FormLabel>New Password</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
+                    <PasswordInput
                       placeholder="Enter new password"
                       {...field}
                     />
@@ -456,8 +460,7 @@ function SecuritySection() {
                 <FormItem>
                   <FormLabel>Confirm New Password</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
+                    <PasswordInput
                       placeholder="Confirm new password"
                       {...field}
                     />

@@ -3,7 +3,11 @@ import { Link } from "react-router-dom";
 
 import { useDashboardSummary, useProfile, useIncomeOverride } from "@/hooks";
 import { formatCurrency, getCurrentMonthYear } from "@/lib/utils";
-import { PageHeader, withErrorBoundary } from "@/components/common";
+import {
+  PageHeader,
+  withErrorBoundary,
+  Illustration,
+} from "@/components/common";
 import {
   Card,
   CardContent,
@@ -103,10 +107,12 @@ function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Dashboard"
-        description="Your financial overview at a glance"
-      />
+      <div className="glass-card rounded-xl p-6 -mx-0">
+        <PageHeader
+          title="Dashboard"
+          description={`${profile?.display_name ? `Welcome back, ${profile.display_name}!` : "Your financial overview at a glance"}`}
+        />
+      </div>
 
       {/* ── Stat widgets ─────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -125,7 +131,7 @@ function DashboardPage() {
                 <CardDescription>Total Debt</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-red-500 dark:text-amber-400">
+                <p className="text-2xl font-bold text-danger dark:text-warning-light">
                   {formatCurrency(data.total_debt)}
                 </p>
                 <p className="text-xs text-muted-foreground">
@@ -181,7 +187,7 @@ function DashboardPage() {
               </CardHeader>
               <CardContent>
                 {data.total_debt === 0 ? (
-                  <p className="text-lg font-semibold text-green-600">
+                  <p className="text-lg font-semibold text-success">
                     You're debt free! 🎉
                   </p>
                 ) : data.debt_free_date ? (
@@ -224,9 +230,12 @@ function DashboardPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {data.top_debts.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    No active debts
-                  </p>
+                  <div className="flex flex-col items-center gap-2 py-2">
+                    <Illustration name="debt" size="sm" />
+                    <p className="text-sm text-muted-foreground">
+                      No active debts — great job!
+                    </p>
+                  </div>
                 ) : (
                   data.top_debts.map((debt) => (
                     <div
@@ -257,8 +266,8 @@ function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
-                    <span className="text-lg font-bold text-amber-600 dark:text-amber-400">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-warning/15 dark:bg-warning/20">
+                    <span className="text-lg font-bold text-warning dark:text-warning-light">
                       {data.unpaid_expenses_count}
                     </span>
                   </div>
@@ -280,9 +289,12 @@ function DashboardPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {data.savings_summary.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    No savings goals yet
-                  </p>
+                  <div className="flex flex-col items-center gap-2 py-2">
+                    <Illustration name="savings" size="sm" />
+                    <p className="text-sm text-muted-foreground">
+                      No savings goals yet
+                    </p>
+                  </div>
                 ) : (
                   data.savings_summary.map((goal) => {
                     const pct =
@@ -353,8 +365,8 @@ function DashboardPage() {
                 <p
                   className={`text-lg font-bold ${
                     remainingBudget >= 0
-                      ? "text-green-600 dark:text-green-400"
-                      : "text-red-500 dark:text-red-400"
+                      ? "text-success dark:text-success-light"
+                      : "text-danger dark:text-danger-light"
                   }`}
                 >
                   {formatCurrency(remainingBudget)}
@@ -370,7 +382,7 @@ function DashboardPage() {
                     )
                   : 0
               }
-              className="mt-4 h-2"
+              className="mt-4 h-2 [&>[data-slot=progress-indicator]]:bg-gradient-to-r [&>[data-slot=progress-indicator]]:from-primary [&>[data-slot=progress-indicator]]:to-primary/60"
             />
             <p className="text-xs text-muted-foreground mt-1 text-right">
               {effectiveIncome > 0
@@ -380,6 +392,44 @@ function DashboardPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* ── Welcome state (no data at all) ─────────────────────────── */}
+      {!isLoading &&
+        data &&
+        data.total_debt === 0 &&
+        data.top_debts.length === 0 &&
+        data.savings_summary.length === 0 &&
+        effectiveIncome === 0 && (
+          <Card className="glass-card">
+            <CardContent className="flex flex-col items-center gap-4 py-8 text-center">
+              <Illustration name="dashboard" size="lg" />
+              <div className="space-y-2">
+                <h2 className="text-xl font-semibold gradient-text">
+                  Welcome to ClearPath!
+                </h2>
+                <p className="mx-auto max-w-md text-sm text-muted-foreground">
+                  Get started by setting your monthly income in Settings, then
+                  add your debts, expenses, and savings goals to see your
+                  financial overview here.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Link
+                  to="/settings"
+                  className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                >
+                  Set Up Income
+                </Link>
+                <Link
+                  to="/debts"
+                  className="inline-flex items-center justify-center rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-accent"
+                >
+                  Add Debts
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        )}
     </div>
   );
 }

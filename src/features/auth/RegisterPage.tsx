@@ -18,7 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { withErrorBoundary } from "@/components/common";
+import { withErrorBoundary, PasswordInput } from "@/components/common";
 import { AuthLayout } from "./AuthLayout";
 
 // ── Anti-bot constants ─────────────────────────────────────────────────────
@@ -81,8 +81,8 @@ function RegisterPage() {
       {submitted ? (
         /* ── Success / confirmation state ──────────────────────── */
         <div className="flex flex-col items-center text-center">
-          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
-            <MailCheck className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-success/15 dark:bg-success/20">
+            <MailCheck className="h-8 w-8 text-success dark:text-success-light" />
           </div>
 
           <h2 className="text-2xl font-bold tracking-tight text-foreground">
@@ -194,8 +194,7 @@ function RegisterPage() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
+                      <PasswordInput
                         placeholder="••••••••"
                         disabled={isSubmitting}
                         className="h-11"
@@ -215,8 +214,7 @@ function RegisterPage() {
                   <FormItem>
                     <FormLabel>Confirm Password</FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
+                      <PasswordInput
                         placeholder="••••••••"
                         disabled={isSubmitting}
                         className="h-11"

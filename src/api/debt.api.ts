@@ -124,6 +124,27 @@ export async function fetchDebtPayments(
 }
 
 /**
+ * Fetch all debt payment records for a given month (across all debts).
+ * Returns one row per debt that has a payment recorded for `monthYear`.
+ */
+export async function fetchAllDebtPaymentsForMonth(
+  monthYear: string,
+): Promise<DebtPayment[]> {
+  const data = throwOnError(
+    await supabase
+      .from("debt_payments")
+      .select("debt_id, amount_paid, payment_date, month_year")
+      .eq("month_year", monthYear),
+  );
+
+  return parseApiResponse(
+    z.array(debtPaymentSchema),
+    data,
+    "allDebtPaymentsForMonth",
+  );
+}
+
+/**
  * Record a payment against a debt.
  *
  * **Approach:** Sequential updates (no server-side RPC). Steps:

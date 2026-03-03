@@ -41,12 +41,12 @@ import DebtForm from "./DebtForm";
 // ── Color map by debt type ───────────────────────────────────────────────────
 
 const TYPE_COLORS: Record<string, string> = {
-  credit_card: "bg-red-500",
-  personal_loan: "bg-blue-500",
-  car_loan: "bg-amber-500",
-  mortgage: "bg-purple-500",
-  student_loan: "bg-teal-500",
-  other: "bg-gray-500",
+  credit_card: "bg-danger",
+  personal_loan: "bg-chart-1",
+  car_loan: "bg-warning",
+  mortgage: "bg-chart-4",
+  student_loan: "bg-chart-3",
+  other: "bg-muted-gray",
 };
 
 // ── Props ────────────────────────────────────────────────────────────────────
@@ -132,8 +132,9 @@ export default function DebtCard({
   }
 
   function confirmDelete() {
-    deleteDebt.mutate(debt.id);
-    setShowDeleteDialog(false);
+    deleteDebt.mutate(debt.id, {
+      onSuccess: () => setShowDeleteDialog(false),
+    });
   }
 
   // ── Render ───────────────────────────────────────────────────────────────
@@ -143,7 +144,7 @@ export default function DebtCard({
       <Card
         className={cn(
           "relative overflow-hidden transition-colors",
-          isPaid && "bg-green-50 dark:bg-green-950/20",
+          isPaid && "bg-success/10 dark:bg-success/5",
         )}
       >
         {/* Left color bar */}
@@ -301,6 +302,8 @@ export default function DebtCard({
         description={`Are you sure you want to delete "${debt.name}"? This action cannot be undone.`}
         confirmLabel="Delete"
         destructive
+        loading={deleteDebt.isPending}
+        loadingLabel="Deleting…"
       />
 
       {/* ── Undo Payment Confirm ────────────────────────────────────────── */}

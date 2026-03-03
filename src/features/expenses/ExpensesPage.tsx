@@ -1,12 +1,18 @@
 import { useMemo, useState } from "react";
-import { ChevronDown, Plus, Receipt } from "lucide-react";
+import { ChevronDown, Loader2, Plus, Receipt } from "lucide-react";
+import { useForm, type Resolver } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { EXPENSE_CATEGORIES } from "@/constants";
 import type { Expense, ExpenseCheckRow } from "@/schemas/expense.schema";
 import {
+  expenseFormSchema,
+  type ExpenseForm as ExpenseFormValues,
+} from "@/schemas/expense.schema";
+import {
   useExpenses,
   useExpenseChecks,
-  useToggleExpenseCheck,
+  useCreateExpense,
 } from "@/hooks/useExpenses";
 import { formatCurrency, getCurrentMonthYear } from "@/lib/utils";
 
@@ -14,11 +20,12 @@ import {
   PageHeader,
   EmptyState,
   MonthPicker,
+  CurrencyInput,
   withErrorBoundary,
 } from "@/components/common";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -26,6 +33,29 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import ExpenseItem from "./ExpenseItem";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -107,52 +137,6 @@ function ExpensesPageSkeleton() {
   );
 }
 
-// ── Expense Item Row ─────────────────────────────────────────────────────────
-
-function ExpenseItem({
-  expense,
-  isPaid,
-  monthYear,
-}: {
-  expense: Expense;
-  isPaid: boolean;
-  monthYear: string;
-}) {
-  const { mutate: toggle, isPending } = useToggleExpenseCheck();
-
-  function handleToggle(checked: boolean) {
-    toggle({ expenseId: expense.id, monthYear, isPaid: checked });
-  }
-
-  return (
-    <div className="flex items-center justify-between rounded-md px-4 py-2 transition-colors hover:bg-muted/50">
-      <div className="flex items-center gap-3">
-        <Checkbox
-          checked={isPaid}
-          onCheckedChange={handleToggle}
-          disabled={isPending}
-          aria-label={`Mark ${expense.name} as ${isPaid ? "unpaid" : "paid"}`}
-        />
-        <div>
-          <p
-            className={`text-sm font-medium ${isPaid ? "text-muted-foreground line-through" : ""}`}
-          >
-            {expense.name}
-          </p>
-          <p className="text-muted-foreground text-xs">
-            Due day {expense.due_day}
-          </p>
-        </div>
-      </div>
-      <span
-        className={`text-sm font-medium tabular-nums ${isPaid ? "text-muted-foreground" : ""}`}
-      >
-        {formatCurrency(expense.amount)}
-      </span>
-    </div>
-  );
-}
-
 // ── Category Group ───────────────────────────────────────────────────────────
 
 function CategoryGroup({
@@ -197,7 +181,7 @@ function CategoryGroup({
               <ExpenseItem
                 key={expense.id}
                 expense={expense}
-                isPaid={paidIds.has(expense.id)}
+                check={checks.find((c) => c.expense_id === expense.id)}
                 monthYear={monthYear}
               />
             ))}
@@ -232,6 +216,119 @@ function SummaryBar({
   );
 }
 
+// ── Add Expense Form ─────────────────────────────────────────────────────────
+
+function AddExpenseForm({ onSuccess }: { onSuccess: () => void }) {
+  const createExpense = useCreateExpense();
+
+  const form = useForm<ExpenseFormValues>({
+    resolver: zodResolver(expenseFormSchema) as Resolver<ExpenseFormValues>,
+    defaultValues: {
+      name: "",
+      category: "other",
+      amount: 0,
+      due_day: 1,
+    },
+  });
+
+  async function onSubmit(values: ExpenseFormValues) {
+    await createExpense.mutateAsync(values);
+    onSuccess();
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {/* Name */}
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g. Netflix" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Category */}
+        <FormField
+          control={form.control}
+          name="category"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Category</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {EXPENSE_CATEGORIES.map((cat) => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Amount */}
+        <FormField
+          control={form.control}
+          name="amount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Amount (PHP)</FormLabel>
+              <FormControl>
+                <CurrencyInput
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Due Day */}
+        <FormField
+          control={form.control}
+          name="due_day"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Due Day (1–31)</FormLabel>
+              <FormControl>
+                <Input type="number" min="1" max="31" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={createExpense.isPending}
+        >
+          {createExpense.isPending && (
+            <Loader2 className="mr-1.5 size-4 animate-spin" />
+          )}
+          Add Expense
+        </Button>
+      </form>
+    </Form>
+  );
+}
+
 // ── Main Component ───────────────────────────────────────────────────────────
 
 function ExpensesPage() {
@@ -239,6 +336,7 @@ function ExpensesPage() {
   const [monthYear, setMonthYear] = useState(getCurrentMonthYear);
   const { data: checks, isLoading: loadingChecks } =
     useExpenseChecks(monthYear);
+  const [isAddOpen, setIsAddOpen] = useState(false);
 
   const isLoading = loadingExpenses || loadingChecks;
 
@@ -285,7 +383,7 @@ function ExpensesPage() {
         <PageHeader
           title="Recurring Expenses"
           action={
-            <Button size="sm">
+            <Button size="sm" onClick={() => setIsAddOpen(true)}>
               <Plus className="mr-1.5 size-4" />
               Add Expense
             </Button>
@@ -295,7 +393,22 @@ function ExpensesPage() {
           icon={Receipt}
           title="No expenses yet"
           description="Start tracking your recurring monthly expenses."
+          illustration="expense"
+          action={{
+            label: "Add Your First Expense",
+            onClick: () => setIsAddOpen(true),
+          }}
         />
+
+        {/* Add Expense Dialog */}
+        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Expense</DialogTitle>
+            </DialogHeader>
+            <AddExpenseForm onSuccess={() => setIsAddOpen(false)} />
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
@@ -315,7 +428,7 @@ function ExpensesPage() {
           </>
         }
         action={
-          <Button size="sm">
+          <Button size="sm" onClick={() => setIsAddOpen(true)}>
             <Plus className="mr-1.5 size-4" />
             Add Expense
           </Button>
@@ -343,6 +456,16 @@ function ExpensesPage() {
         totalCount={totalCount}
         remaining={remaining}
       />
+
+      {/* Add Expense Dialog */}
+      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Expense</DialogTitle>
+          </DialogHeader>
+          <AddExpenseForm onSuccess={() => setIsAddOpen(false)} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -119,6 +119,7 @@ function SavingsPage() {
           icon={PiggyBank}
           title="No savings goals yet"
           description="Create a goal to start tracking your progress toward financial targets."
+          illustration="savings"
           action={{ label: "Add Goal", onClick: () => setAddOpen(true) }}
         />
       )}

@@ -10,6 +10,9 @@ import {
   fetchIncomeOverride,
   upsertIncomeOverride,
   deleteIncomeOverride,
+  fetchSkippedMonth,
+  skipMonth,
+  unskipMonth,
 } from "@/api/budget.api";
 import type { BudgetExtra, BudgetExtraForm } from "@/schemas/budget.schema";
 import { CACHE_TIER_1 } from "@/lib/queryClient";
@@ -145,6 +148,50 @@ export function useDeleteIncomeOverride() {
         queryKey: QUERY_KEYS.budget.incomeOverride(monthYear),
       });
       toast.success("Reverted to default income");
+    },
+  });
+}
+
+// ── Skipped Months — Queries ─────────────────────────────────────────────────
+
+/** Fetch whether a given month is skipped (pre-paid). */
+export function useSkippedMonth(monthYear: string) {
+  return useQuery({
+    queryKey: QUERY_KEYS.budget.skippedMonth(monthYear),
+    queryFn: () => fetchSkippedMonth(monthYear),
+    enabled: !!monthYear,
+    ...CACHE_TIER_1,
+  });
+}
+
+// ── Skipped Months — Mutations ───────────────────────────────────────────────
+
+/** Mark a month as skipped (pre-paid). */
+export function useSkipMonth() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (monthYear: string) => skipMonth(monthYear),
+    onSuccess: (_data, monthYear) => {
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.budget.skippedMonth(monthYear),
+      });
+      toast.success("Month marked as pre-paid");
+    },
+  });
+}
+
+/** Remove the skipped flag for a month. */
+export function useUnskipMonth() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (monthYear: string) => unskipMonth(monthYear),
+    onSuccess: (_data, monthYear) => {
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.budget.skippedMonth(monthYear),
+      });
+      toast.success("Month unskipped — budget tracking restored");
     },
   });
 }

@@ -13,6 +13,7 @@ import { useCreateSavingsGoal, useUpdateSavingsGoal } from "@/hooks/useSavings";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/common";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -102,7 +103,11 @@ export default function SavingsGoalForm({
             <FormItem>
               <FormLabel>Target Amount</FormLabel>
               <FormControl>
-                <Input type="number" step="0.01" min={0} {...field} />
+                <CurrencyInput
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -117,7 +122,11 @@ export default function SavingsGoalForm({
             <FormItem>
               <FormLabel>Starting Amount</FormLabel>
               <FormControl>
-                <Input type="number" step="0.01" min={0} {...field} />
+                <CurrencyInput
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

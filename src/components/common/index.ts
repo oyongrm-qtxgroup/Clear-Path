@@ -1,5 +1,9 @@
 export { ConfirmDialog } from "./ConfirmDialog";
+export { CurrencyInput } from "./CurrencyInput";
 export { EmptyState } from "./EmptyState";
+export { Illustration } from "./Illustration";
+export type { IllustrationName } from "./Illustration";
+export { PasswordInput } from "./PasswordInput";
 export {
   ErrorBoundary,
   withErrorBoundary,

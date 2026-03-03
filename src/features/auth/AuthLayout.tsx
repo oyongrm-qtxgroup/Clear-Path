@@ -9,6 +9,7 @@ import {
   Shield,
   TrendingUp,
 } from "lucide-react";
+import { Illustration } from "@/components/common";
 
 // ── Animated floating icon ───────────────────────────────────────────────────
 function FloatingIcon({
@@ -49,7 +50,7 @@ function ChartIllustration() {
         <polyline
           points="40,40 90,55 140,80 190,115 240,140 290,170"
           fill="none"
-          stroke="rgba(239,68,68,0.7)"
+          stroke="rgba(220,38,38,0.7)"
           strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -71,7 +72,7 @@ function ChartIllustration() {
             cx={cx}
             cy={cy}
             r="3.5"
-            fill="#ef4444"
+            fill="#dc2626"
             className="auth-dot-pop"
             style={{ animationDelay: `${1.2 + i * 0.15}s` }}
           />
@@ -81,7 +82,7 @@ function ChartIllustration() {
         <polyline
           points="40,170 90,155 140,130 190,100 240,65 290,35"
           fill="none"
-          stroke="rgba(52,211,153,0.8)"
+          stroke="rgba(0,250,195,0.8)"
           strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -93,8 +94,8 @@ function ChartIllustration() {
         {/* Savings area gradient */}
         <defs>
           <linearGradient id="savingsGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="rgba(52,211,153,0.25)" />
-            <stop offset="100%" stopColor="rgba(52,211,153,0)" />
+            <stop offset="0%" stopColor="rgba(0,250,195,0.25)" />
+            <stop offset="100%" stopColor="rgba(0,250,195,0)" />
           </linearGradient>
         </defs>
         <polygon
@@ -116,7 +117,7 @@ function ChartIllustration() {
             cx={cx}
             cy={cy}
             r="3.5"
-            fill="#34d399"
+            fill="#00FAC3"
             className="auth-dot-pop"
             style={{ animationDelay: `${1.5 + i * 0.15}s` }}
           />
@@ -127,7 +128,7 @@ function ChartIllustration() {
           x="295"
           y="28"
           fontSize="10"
-          fill="#34d399"
+          fill="#00FAC3"
           fontWeight="600"
           textAnchor="end"
           className="auth-fade-in"
@@ -139,7 +140,7 @@ function ChartIllustration() {
           x="295"
           y="185"
           fontSize="10"
-          fill="#ef4444"
+          fill="#dc2626"
           fontWeight="600"
           textAnchor="end"
           className="auth-fade-in"
@@ -155,11 +156,11 @@ function ChartIllustration() {
         style={{ animationDelay: "2s" }}
       >
         <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-emerald-400" />
+          <span className="h-2 w-2 rounded-full bg-brand-light" />
           <span className="text-white/80">Savings</span>
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-red-400" />
+          <span className="h-2 w-2 rounded-full bg-danger" />
           <span className="text-white/80">Debt</span>
         </span>
       </div>
@@ -193,24 +194,24 @@ export function AuthLayout({ children }: AuthLayoutProps) {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       {/* ── Brand Panel ─────────────────────────────────────────────── */}
-      <div className="relative hidden overflow-hidden bg-primary lg:flex lg:flex-col lg:justify-between">
+      <div className="relative hidden overflow-hidden gradient-bg lg:flex lg:flex-col lg:justify-between">
         {/* Decorative blobs — animated pulse */}
         <div className="absolute -top-24 -left-24 h-72 w-72 animate-pulse rounded-full bg-white/5 blur-2xl" />
-        <div className="absolute -right-16 top-1/3 h-56 w-56 animate-pulse rounded-full bg-emerald-400/5 blur-3xl [animation-delay:1s]" />
+        <div className="absolute -right-16 top-1/3 h-56 w-56 animate-pulse rounded-full bg-brand-light/5 blur-3xl [animation-delay:1s]" />
         <div className="absolute -bottom-20 left-1/4 h-64 w-64 animate-pulse rounded-full bg-white/5 blur-2xl [animation-delay:2s]" />
 
         {/* Floating icons */}
         <FloatingIcon className="auth-float top-[18%] right-10 h-11 w-11 [animation-delay:0s]">
-          <DollarSign className="h-5 w-5 text-emerald-300" />
+          <DollarSign className="h-5 w-5 text-brand-light" />
         </FloatingIcon>
         <FloatingIcon className="auth-float top-[30%] left-14 h-10 w-10 [animation-delay:1.5s]">
-          <Percent className="h-4 w-4 text-amber-300" />
+          <Percent className="h-4 w-4 text-warning-light" />
         </FloatingIcon>
         <FloatingIcon className="auth-float bottom-[25%] right-16 h-10 w-10 [animation-delay:3s]">
-          <Shield className="h-4 w-4 text-sky-300" />
+          <Shield className="h-4 w-4 text-brand" />
         </FloatingIcon>
         <FloatingIcon className="auth-float bottom-[15%] left-10 h-11 w-11 [animation-delay:4.5s]">
-          <TrendingUp className="h-5 w-5 text-emerald-300" />
+          <TrendingUp className="h-5 w-5 text-brand-light" />
         </FloatingIcon>
 
         {/* Top — Logo */}
@@ -226,7 +227,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
             <h1 className="auth-fade-in-up text-4xl leading-tight font-bold text-white xl:text-5xl">
               Your journey to
               <br />
-              <span className="text-emerald-300">debt-free living</span>
+              <span className="text-brand-light">debt-free living</span>
               <br />
               starts here.
             </h1>
@@ -239,8 +240,15 @@ export function AuthLayout({ children }: AuthLayoutProps) {
             </p>
           </div>
 
-          {/* Chart illustration */}
-          <ChartIllustration />
+          {/* Auth illustration + Chart illustration */}
+          <div className="auth-fade-in-up flex flex-col items-center gap-4">
+            <Illustration
+              name="auth"
+              size="lg"
+              className="text-white/30 dark:text-white/20"
+            />
+            <ChartIllustration />
+          </div>
 
           <div className="space-y-3">
             {FEATURES.map(({ icon: Icon, title, description }, i) => (
@@ -250,7 +258,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
                 style={{ animationDelay: `${0.4 + i * 0.1}s` }}
               >
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10 transition-colors hover:bg-white/20">
-                  <Icon className="h-4 w-4 text-emerald-300" />
+                  <Icon className="h-4 w-4 text-brand-light" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-white">{title}</p>
@@ -267,7 +275,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
           style={{ animationDelay: "0.6s" }}
         >
           <div className="flex items-center gap-2 text-sm text-white/50">
-            <ArrowRight className="h-4 w-4 text-emerald-300" />
+            <ArrowRight className="h-4 w-4 text-brand-light" />
             <span>Free to use. No credit card required.</span>
           </div>
         </div>

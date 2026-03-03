@@ -39,15 +39,15 @@ import type { Debt, DebtPayment } from "@/schemas/debt.schema";
 // ── Color map by debt type ───────────────────────────────────────────────────
 
 const TYPE_COLORS: Record<string, string> = {
-  credit_card: "bg-red-500",
-  personal_loan: "bg-blue-500",
-  car_loan: "bg-amber-500",
-  mortgage: "bg-purple-500",
-  student_loan: "bg-teal-500",
-  other: "bg-gray-500",
+  credit_card: "bg-danger",
+  personal_loan: "bg-chart-1",
+  car_loan: "bg-warning",
+  mortgage: "bg-chart-4",
+  student_loan: "bg-chart-3",
+  other: "bg-muted-gray",
 };
 
-const CHART_COLOR = "hsl(221, 83%, 53%)"; // blue-600
+const CHART_COLOR = "var(--chart-1)"; // blue-600
 
 // ── URL param schema ─────────────────────────────────────────────────────────
 
@@ -241,6 +241,7 @@ function DebtDetailPage() {
           icon={AlertTriangle}
           title="Debt Not Found"
           description="The debt ID in the URL is invalid. Please check the link and try again."
+          illustration="no-data"
           action={{ label: "Back to Debts", onClick: () => navigate("/debts") }}
         />
       </div>

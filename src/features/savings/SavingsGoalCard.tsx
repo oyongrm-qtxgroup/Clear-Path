@@ -29,7 +29,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   DropdownMenu,
@@ -43,7 +42,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ConfirmDialog } from "@/components/common";
+import { ConfirmDialog, CurrencyInput } from "@/components/common";
 import SavingsGoalForm from "./SavingsGoalForm";
 
 // ── Props ────────────────────────────────────────────────────────────────────
@@ -148,10 +147,10 @@ export default function SavingsGoalCard({ goal, logs }: SavingsGoalCardProps) {
         <div
           className={
             isGoalReached
-              ? "absolute inset-y-0 left-0 w-1.5 bg-green-500"
+              ? "absolute inset-y-0 left-0 w-1.5 bg-success"
               : isOverdue
-                ? "absolute inset-y-0 left-0 w-1.5 bg-red-500"
-                : "absolute inset-y-0 left-0 w-1.5 bg-blue-500"
+                ? "absolute inset-y-0 left-0 w-1.5 bg-danger"
+                : "absolute inset-y-0 left-0 w-1.5 bg-brand"
           }
         />
 
@@ -245,15 +244,12 @@ export default function SavingsGoalCard({ goal, logs }: SavingsGoalCardProps) {
                 <Label htmlFor={`log-${goal.id}`} className="text-xs">
                   Log this month's savings
                 </Label>
-                <Input
+                <CurrencyInput
                   id={`log-${goal.id}`}
-                  type="number"
-                  min="0.01"
-                  step="0.01"
                   placeholder="0.00"
-                  value={logAmount}
-                  onChange={(e) => setLogAmount(e.target.value)}
-                  className="h-8 text-sm"
+                  value={logAmount ? parseFloat(logAmount) : 0}
+                  onChange={(v) => setLogAmount(v > 0 ? String(v) : "")}
+                  compact
                 />
               </div>
               <Button
@@ -331,7 +327,7 @@ export default function SavingsGoalCard({ goal, logs }: SavingsGoalCardProps) {
                     type="monotone"
                     dataKey="planned"
                     name="Planned"
-                    stroke="#3b82f6"
+                    stroke="var(--chart-1)"
                     strokeDasharray="6 3"
                     strokeWidth={2}
                     dot={false}
@@ -343,7 +339,7 @@ export default function SavingsGoalCard({ goal, logs }: SavingsGoalCardProps) {
                     type="monotone"
                     dataKey="actual"
                     name="Actual"
-                    stroke="#22c55e"
+                    stroke="var(--color-success)"
                     strokeWidth={2}
                     dot={false}
                     activeDot={{ r: 3 }}

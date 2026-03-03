@@ -8,6 +8,8 @@ import {
   Pencil,
   RotateCcw,
   Check,
+  SkipForward,
+  CalendarCheck2,
 } from "lucide-react";
 
 import {
@@ -25,12 +27,18 @@ import {
   useIncomeOverride,
   useUpsertIncomeOverride,
   useDeleteIncomeOverride,
+  useAllDebtPaymentsForMonth,
+  useSkippedMonth,
+  useSkipMonth,
+  useUnskipMonth,
 } from "@/hooks";
 import { DEBT_TYPES, EXPENSE_CATEGORIES } from "@/constants";
 import { formatCurrency, getCurrentMonthYear } from "@/lib/utils";
 import {
   PageHeader,
   MonthPicker,
+  CurrencyInput,
+  ConfirmDialog,
   withErrorBoundary,
 } from "@/components/common";
 import {
@@ -127,15 +135,10 @@ function IncomeBar({
             <p className="text-sm text-muted-foreground">Monthly Income</p>
             {editing ? (
               <div className="flex items-center gap-2 mt-1">
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className="h-8 w-40"
-                  autoFocus
+                <CurrencyInput
+                  value={inputValue ? parseFloat(inputValue) : 0}
+                  onChange={(v) => setInputValue(String(v))}
+                  compact
                 />
                 <Button
                   size="icon-sm"
@@ -232,7 +235,7 @@ function SummaryCards({
           <CardDescription>Paid This Month</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+          <p className="text-2xl font-bold text-success dark:text-success-light">
             {formatCurrency(totalPaid)}
           </p>
           <div className="mt-2 space-y-1">
@@ -255,8 +258,8 @@ function SummaryCards({
           <p
             className={`text-2xl font-bold ${
               remainingBudget >= 0
-                ? "text-green-600 dark:text-green-400"
-                : "text-red-500 dark:text-red-400"
+                ? "text-success dark:text-success-light"
+                : "text-danger dark:text-danger-light"
             }`}
           >
             {formatCurrency(remainingBudget)}
@@ -294,7 +297,7 @@ function AddExtraRow({ monthYear }: { monthYear: string }) {
   }
 
   return (
-    <TableRow className="bg-muted/30">
+    <TableRow className="bg-transparent">
       <TableCell>
         <div className="flex items-center gap-2">
           <Plus className="size-4 text-muted-foreground" />
@@ -311,21 +314,19 @@ function AddExtraRow({ monthYear }: { monthYear: string }) {
         <Badge variant="outline">Extra</Badge>
       </TableCell>
       <TableCell>
-        <Input
-          type="number"
+        <CurrencyInput
           placeholder="Amount"
-          min="0"
-          step="0.01"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          onKeyDown={handleKeyDown}
-          className="h-8 w-28"
+          value={amount ? parseFloat(amount) : 0}
+          onChange={(v) => setAmount(v > 0 ? String(v) : "")}
+          compact
         />
       </TableCell>
       <TableCell>&mdash;</TableCell>
       <TableCell>
         <Button
+          variant="outline"
           size="sm"
+          className="border-border text-foreground hover:bg-accent hover:text-accent-foreground"
           onClick={handleAdd}
           disabled={
             createMutation.isPending || !name.trim() || !parseFloat(amount)
@@ -551,10 +552,49 @@ function BudgetSkeleton() {
   );
 }
 
+// ── Skipped Month Banner ─────────────────────────────────────────────────────
+
+function SkippedMonthBanner({
+  monthYear,
+  onUnskip,
+  isUnskipping,
+}: {
+  monthYear: string;
+  onUnskip: () => void;
+  isUnskipping: boolean;
+}) {
+  return (
+    <Card className="border-dashed">
+      <CardContent className="flex flex-col items-center justify-center gap-4 py-12">
+        <CalendarCheck2 className="size-12 text-success" />
+        <div className="text-center space-y-1">
+          <p className="text-lg font-semibold">
+            This month was marked as pre-paid.
+          </p>
+          <p className="text-sm text-muted-foreground max-w-md">
+            All obligations for{" "}
+            {format(new Date(monthYear + "-01"), "MMMM yyyy")} were already
+            handled. No balance changes were made.
+          </p>
+        </div>
+        <Button variant="outline" onClick={onUnskip} disabled={isUnskipping}>
+          {isUnskipping ? (
+            <Loader2 className="mr-2 size-4 animate-spin" />
+          ) : (
+            <RotateCcw className="mr-2 size-4" />
+          )}
+          Unskip Month
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 function MonthlyBudgetPage() {
   const [monthYear, setMonthYear] = useState(getCurrentMonthYear);
+  const [showSkipConfirm, setShowSkipConfirm] = useState(false);
 
   // Data queries
   const { profile } = useProfile();
@@ -565,6 +605,13 @@ function MonthlyBudgetPage() {
   const { data: extras, isLoading: extrasLoading } = useBudgetExtras(monthYear);
   const { data: incomeOverride, isLoading: incomeLoading } =
     useIncomeOverride(monthYear);
+  const { data: skippedMonth, isLoading: skippedLoading } =
+    useSkippedMonth(monthYear);
+
+  const skipMonthMutation = useSkipMonth();
+  const unskipMonthMutation = useUnskipMonth();
+
+  const isSkipped = !!skippedMonth;
 
   // We need all debt payments for the month — fetch them per debt
   // This is handled via the individual debt payment query per debt below
@@ -574,7 +621,8 @@ function MonthlyBudgetPage() {
     expensesLoading ||
     checksLoading ||
     extrasLoading ||
-    incomeLoading;
+    incomeLoading ||
+    skippedLoading;
 
   // ── Computed values ──────────────────────────────────────────────────────
 
@@ -660,11 +708,73 @@ function MonthlyBudgetPage() {
           title="Monthly Budget"
           description="Track all your obligations against your income"
         />
-        <MonthPicker value={monthYear} onMonthChange={setMonthYear} />
+        <div className="flex items-center gap-2">
+          {!isLoading && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (isSkipped) {
+                  unskipMonthMutation.mutate(monthYear);
+                } else {
+                  setShowSkipConfirm(true);
+                }
+              }}
+              disabled={
+                skipMonthMutation.isPending || unskipMonthMutation.isPending
+              }
+            >
+              {skipMonthMutation.isPending || unskipMonthMutation.isPending ? (
+                <Loader2 className="mr-1.5 size-4 animate-spin" />
+              ) : (
+                <SkipForward className="mr-1.5 size-4" />
+              )}
+              {isSkipped ? "Unskip Month" : "Skip Month"}
+            </Button>
+          )}
+          <MonthPicker value={monthYear} onMonthChange={setMonthYear} />
+        </div>
       </div>
+
+      <ConfirmDialog
+        open={showSkipConfirm}
+        onConfirm={() => {
+          skipMonthMutation.mutate(monthYear, {
+            onSuccess: () => setShowSkipConfirm(false),
+          });
+        }}
+        onCancel={() => setShowSkipConfirm(false)}
+        title="Skip this month?"
+        description="Mark this month as pre-paid? This means you've already paid all obligations for this month outside the app. No balances will be changed."
+        confirmLabel="Yes, skip month"
+        loading={skipMonthMutation.isPending}
+        loadingLabel="Skipping…"
+      />
 
       {isLoading ? (
         <BudgetSkeleton />
+      ) : isSkipped ? (
+        <>
+          <IncomeBar
+            defaultIncome={defaultIncome}
+            overrideAmount={incomeOverride?.income_amount ?? null}
+            monthYear={monthYear}
+          />
+
+          <SummaryCards
+            totalObligations={totalObligations}
+            totalPaid={totalObligations}
+            remainingBudget={remainingBudget}
+            paidCount={totalItems}
+            totalCount={totalItems}
+          />
+
+          <SkippedMonthBanner
+            monthYear={monthYear}
+            onUnskip={() => unskipMonthMutation.mutate(monthYear)}
+            isUnskipping={unskipMonthMutation.isPending}
+          />
+        </>
       ) : (
         <BudgetContent
           monthYear={monthYear}
@@ -737,11 +847,7 @@ function BudgetContent({
   const { data: allDebtPayments } = useAllDebtPaymentsForMonth(monthYear);
 
   const paidDebtIds = useMemo(() => {
-    const set = new Set<string>();
-    for (const p of allDebtPayments ?? []) {
-      set.add(p.debt_id);
-    }
-    return set;
+    return new Set<string>(Object.keys(allDebtPayments ?? {}));
   }, [allDebtPayments]);
 
   const paidDebtAmount = useMemo(
@@ -892,8 +998,8 @@ function BudgetContent({
                   <TableCell
                     className={`font-mono text-right font-bold text-base ${
                       remainingBudget >= 0
-                        ? "text-green-600 dark:text-green-400"
-                        : "text-red-500 dark:text-red-400"
+                        ? "text-success dark:text-success-light"
+                        : "text-danger dark:text-danger-light"
                     }`}
                   >
                     {formatCurrency(remainingBudget)}
@@ -907,32 +1013,6 @@ function BudgetContent({
       </Card>
     </>
   );
-}
-
-// ── Hook: fetch all debt payments for a single month ─────────────────────────
-// This queries the debt_payments table for the given month_year
-// to determine which debts have been paid.
-
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
-
-function useAllDebtPaymentsForMonth(monthYear: string) {
-  return useQuery({
-    queryKey: ["budget", "debtPayments", monthYear],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("debt_payments")
-        .select("debt_id, amount_paid, month_year")
-        .eq("month_year", monthYear);
-      if (error) throw new Error(error.message);
-      return data as {
-        debt_id: string;
-        amount_paid: number;
-        month_year: string;
-      }[];
-    },
-    enabled: !!monthYear,
-  });
 }
 
 export default withErrorBoundary(MonthlyBudgetPage, "Monthly Budget");

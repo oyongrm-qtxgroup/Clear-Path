@@ -18,7 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { withErrorBoundary } from "@/components/common";
+import { withErrorBoundary, PasswordInput } from "@/components/common";
 import { AuthLayout } from "./AuthLayout";
 
 // ── Anti-bot constants ─────────────────────────────────────────────────────
@@ -124,15 +124,14 @@ function LoginPage() {
                   <FormLabel>Password</FormLabel>
                   <Link
                     to="/forgot-password"
-                    className="text-xs text-emerald-600 underline underline-offset-4 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
+                    className="text-xs text-brand-dark underline underline-offset-4 hover:text-brand dark:text-brand-light dark:hover:text-brand"
                     tabIndex={-1}
                   >
                     Forgot password?
                   </Link>
                 </div>
                 <FormControl>
-                  <Input
-                    type="password"
+                  <PasswordInput
                     placeholder="••••••••"
                     disabled={isSubmitting}
                     className="h-11"

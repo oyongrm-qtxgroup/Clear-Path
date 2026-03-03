@@ -126,7 +126,7 @@ function SidebarFooter() {
 // ── Desktop sidebar ──────────────────────────────────────────────────────────
 function DesktopSidebar() {
   return (
-    <aside className="hidden h-screen w-60 flex-col bg-sidebar md:flex sticky top-0">
+    <aside className="hidden h-screen w-60 flex-col bg-gradient-to-b from-[var(--gradient-start)] to-[var(--gradient-end)] md:flex sticky top-0">
       <div className="flex h-14 items-center px-4">
         <span className="text-lg font-bold tracking-tight text-white">
           ClearPath
@@ -154,7 +154,10 @@ function MobileNav() {
             <span className="sr-only">Open menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-60 bg-sidebar p-0 border-none">
+        <SheetContent
+          side="left"
+          className="w-60 bg-gradient-to-b from-[var(--gradient-start)] to-[var(--gradient-end)] p-0 border-none backdrop-blur-md"
+        >
           <SheetHeader className="h-14 justify-center px-4">
             <SheetTitle className="text-lg font-bold tracking-tight text-white">
               ClearPath

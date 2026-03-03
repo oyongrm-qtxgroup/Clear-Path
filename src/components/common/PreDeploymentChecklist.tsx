@@ -238,15 +238,15 @@ function StatusIcon({ status }: { status: CheckStatus }) {
   switch (status) {
     case "pass":
       return (
-        <CheckCircle2 className="size-4 shrink-0 text-green-600 dark:text-green-400" />
+        <CheckCircle2 className="size-4 shrink-0 text-success dark:text-success-light" />
       );
     case "fail":
       return (
-        <XCircle className="size-4 shrink-0 text-red-600 dark:text-red-400" />
+        <XCircle className="size-4 shrink-0 text-danger dark:text-danger-light" />
       );
     case "warn":
       return (
-        <XCircle className="size-4 shrink-0 text-amber-500 dark:text-amber-400" />
+        <XCircle className="size-4 shrink-0 text-warning dark:text-warning-light" />
       );
     case "pending":
     default:
@@ -337,8 +337,8 @@ function PreDeploymentChecklistInner() {
             className={cn(
               "flex w-full items-center justify-between rounded-lg border px-4 py-2.5 text-sm font-medium shadow-lg transition-colors",
               "bg-background hover:bg-accent",
-              allPassed && !running && "border-green-500/50",
-              failCount > 0 && !running && "border-red-500/50",
+              allPassed && !running && "border-success/50",
+              failCount > 0 && !running && "border-danger/50",
             )}
           >
             <span className="flex items-center gap-2">
@@ -383,11 +383,11 @@ function PreDeploymentChecklistInner() {
                         className={cn(
                           "text-sm font-medium",
                           check.status === "pass" &&
-                            "text-green-700 dark:text-green-400",
+                            "text-success-dark dark:text-success-light",
                           check.status === "fail" &&
-                            "text-red-700 dark:text-red-400",
+                            "text-danger-dark dark:text-danger-light",
                           check.status === "warn" &&
-                            "text-amber-600 dark:text-amber-400",
+                            "text-warning dark:text-warning-light",
                         )}
                       >
                         {check.label}

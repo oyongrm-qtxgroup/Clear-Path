@@ -3,13 +3,9 @@ import { PiggyBank, Plus, ChevronDown } from "lucide-react";
 
 import { SORT_METHODS } from "@/constants";
 import type { Debt } from "@/schemas/debt.schema";
-import { useDebts } from "@/hooks/useDebts";
+import { useDebts, useAllDebtPaymentsForMonth } from "@/hooks/useDebts";
 import { useDebtFreeConfetti } from "@/hooks/useDebtFreeConfetti";
-import {
-  formatCurrency,
-  getCurrentMonthYear,
-  daysUntilDueThisMonth,
-} from "@/lib/utils";
+import { formatCurrency, getCurrentMonthYear } from "@/lib/utils";
 
 import {
   PageHeader,
@@ -37,6 +33,7 @@ import {
 } from "@/components/ui/collapsible";
 
 import DebtForm from "./DebtForm";
+import DebtCard from "./DebtCard";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -98,98 +95,17 @@ function DebtsPageSkeleton() {
   );
 }
 
-// ── Debt Card ────────────────────────────────────────────────────────────────
-
-function DebtCard({ debt }: { debt: Debt }) {
-  const progress =
-    debt.original_amount > 0
-      ? ((debt.original_amount - debt.current_balance) / debt.original_amount) *
-        100
-      : 0;
-
-  const isOverdue =
-    !debt.is_paid_off && daysUntilDueThisMonth(debt.due_day) < 0;
-  const isDueSoon =
-    !debt.is_paid_off &&
-    !isOverdue &&
-    daysUntilDueThisMonth(debt.due_day) >= 0 &&
-    daysUntilDueThisMonth(debt.due_day) <= 3;
-
-  function getStatusBadge() {
-    if (debt.is_paid_off) return <Badge variant="secondary">Paid Off</Badge>;
-    if (isOverdue) return <Badge variant="destructive">Overdue</Badge>;
-    if (isDueSoon) return <Badge variant="warning">Due Soon</Badge>;
-    return (
-      <Badge variant="default">{formatCurrency(debt.current_balance)}</Badge>
-    );
-  }
-
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div>
-            <CardTitle className="text-base">{debt.name}</CardTitle>
-            <p className="text-muted-foreground text-xs capitalize">
-              {debt.type.replace("_", " ")}
-            </p>
-          </div>
-          {getStatusBadge()}
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {/* Progress bar */}
-        <div className="space-y-1">
-          <div className="flex justify-between text-xs">
-            <span className="text-muted-foreground">Progress</span>
-            <span className="font-medium">{progress.toFixed(1)}%</span>
-          </div>
-          <div className="bg-secondary h-2 w-full overflow-hidden rounded-full">
-            <div
-              className="bg-primary h-full rounded-full transition-all"
-              style={{ width: `${Math.min(progress, 100)}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Details */}
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <div>
-            <p className="text-muted-foreground text-xs">Interest Rate</p>
-            <p className="font-medium">{debt.interest_rate}%</p>
-          </div>
-          <div>
-            <p className="text-muted-foreground text-xs">Monthly Payment</p>
-            <p className="font-medium">
-              {formatCurrency(debt.monthly_payment)}
-            </p>
-          </div>
-          <div>
-            <p className="text-muted-foreground text-xs">Due Day</p>
-            <p className="font-medium">{debt.due_day}</p>
-          </div>
-          <div>
-            <p className="text-muted-foreground text-xs">Original Amount</p>
-            <p className="font-medium">
-              {formatCurrency(debt.original_amount)}
-            </p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 // ── Main Component ───────────────────────────────────────────────────────────
 
 function DebtsPage() {
   const { data: debts, isLoading } = useDebts();
+  const [monthYear, setMonthYear] = useState(getCurrentMonthYear);
+  const { data: paymentMap } = useAllDebtPaymentsForMonth(monthYear);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [sortMethod, setSortMethod] = useState<SortMethod>(
     SORT_METHODS.AVALANCHE,
   );
-  const [monthYear, setMonthYear] = useState(getCurrentMonthYear);
   const [paidOffOpen, setPaidOffOpen] = useState(false);
 
   // Split debts into active / paid-off and sort active debts
@@ -246,6 +162,7 @@ function DebtsPage() {
           icon={PiggyBank}
           title="No debts yet"
           description="Start tracking your debts to build a payoff plan."
+          illustration="debt"
           action={{
             label: "Add Your First Debt",
             onClick: () => setDialogOpen(true),
@@ -306,11 +223,23 @@ function DebtsPage() {
         <MonthPicker value={monthYear} onMonthChange={setMonthYear} />
       </div>
 
+      {/* Strategy explanation */}
+      <p className="text-muted-foreground text-sm">
+        {sortMethod === SORT_METHODS.AVALANCHE
+          ? "Pay off debts with the \u0068ighest interest rate first \u2014 saves the most money over time."
+          : "Pay off debts with the smallest balance first \u2014 builds momentum with quick wins."}
+      </p>
+
       {/* Active debts grid */}
       {activeDebts.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {activeDebts.map((debt) => (
-            <DebtCard key={debt.id} debt={debt} />
+            <DebtCard
+              key={debt.id}
+              debt={debt}
+              monthYear={monthYear}
+              paymentRecord={paymentMap?.[debt.id]}
+            />
           ))}
         </div>
       ) : (
@@ -333,7 +262,12 @@ function DebtsPage() {
           <CollapsibleContent className="pt-4">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {paidOffDebts.map((debt) => (
-                <DebtCard key={debt.id} debt={debt} />
+                <DebtCard
+                  key={debt.id}
+                  debt={debt}
+                  monthYear={monthYear}
+                  paymentRecord={paymentMap?.[debt.id]}
+                />
               ))}
             </div>
           </CollapsibleContent>

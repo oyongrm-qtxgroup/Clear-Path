@@ -41,8 +41,20 @@ export const budgetIncomeOverrideSchema = incomeOverrideFormSchema.extend({
   updated_at: z.coerce.date(),
 });
 
+// ── Skipped month schema ─────────────────────────────────────────────────────
+
+export const skippedMonthSchema = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  month_year: z
+    .string()
+    .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Must be in YYYY-MM format"),
+  created_at: z.coerce.date(),
+});
+
 // ── Inferred types ───────────────────────────────────────────────────────────
 export type BudgetExtraForm = z.infer<typeof budgetExtraFormSchema>;
 export type BudgetExtra = z.infer<typeof budgetExtraSchema>;
 export type IncomeOverrideForm = z.infer<typeof incomeOverrideFormSchema>;
 export type BudgetIncomeOverride = z.infer<typeof budgetIncomeOverrideSchema>;
+export type SkippedMonth = z.infer<typeof skippedMonthSchema>;

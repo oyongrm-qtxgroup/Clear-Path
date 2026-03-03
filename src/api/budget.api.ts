@@ -5,9 +5,11 @@ import { parseApiResponse } from "@/lib/parse-api-response";
 import {
   budgetExtraSchema,
   budgetIncomeOverrideSchema,
+  skippedMonthSchema,
   type BudgetExtra,
   type BudgetExtraForm,
   type BudgetIncomeOverride,
+  type SkippedMonth,
 } from "@/schemas/budget.schema";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -163,6 +165,62 @@ export async function deleteIncomeOverride(monthYear: string): Promise<void> {
   throwOnError(
     await supabase
       .from("budget_income_overrides")
+      .delete()
+      .eq("user_id", userId)
+      .eq("month_year", monthYear),
+  );
+}
+
+// ── Skipped Months — Queries ─────────────────────────────────────────────────
+
+/**
+ * Fetch whether a given month is skipped (pre-paid).
+ * Returns the row or null if not skipped.
+ */
+export async function fetchSkippedMonth(
+  monthYear: string,
+): Promise<SkippedMonth | null> {
+  const { data, error } = await supabase
+    .from("budget_skipped_months")
+    .select("*")
+    .eq("month_year", monthYear)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) return null;
+
+  return parseApiResponse(skippedMonthSchema, data, "skippedMonth");
+}
+
+// ── Skipped Months — Mutations ───────────────────────────────────────────────
+
+/**
+ * Mark a month as skipped (pre-paid).
+ */
+export async function skipMonth(monthYear: string): Promise<SkippedMonth> {
+  const userId = await requireUserId();
+
+  const { data, error } = await supabase
+    .from("budget_skipped_months")
+    .insert({
+      user_id: userId,
+      month_year: monthYear,
+    })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+
+  return parseApiResponse(skippedMonthSchema, data, "skippedMonth.skip");
+}
+
+/**
+ * Remove the skipped flag for a month.
+ */
+export async function unskipMonth(monthYear: string): Promise<void> {
+  const userId = await requireUserId();
+
+  throwOnError(
+    await supabase
+      .from("budget_skipped_months")
       .delete()
       .eq("user_id", userId)
       .eq("month_year", monthYear),

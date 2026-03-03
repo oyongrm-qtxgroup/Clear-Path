@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/common";
 import {
   Dialog,
   DialogContent,
@@ -140,7 +141,11 @@ function EditExpenseForm({
             <FormItem>
               <FormLabel>Amount (PHP)</FormLabel>
               <FormControl>
-                <Input type="number" step="0.01" min="0" {...field} />
+                <CurrencyInput
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

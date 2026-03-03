@@ -60,6 +60,8 @@ export const QUERY_KEYS = {
     extras: (monthYear: string) => ["budget", "extras", monthYear] as const,
     incomeOverride: (monthYear: string) =>
       ["budget", "incomeOverride", monthYear] as const,
+    skippedMonth: (monthYear: string) =>
+      ["budget", "skippedMonth", monthYear] as const,
   },
 } as const;
 

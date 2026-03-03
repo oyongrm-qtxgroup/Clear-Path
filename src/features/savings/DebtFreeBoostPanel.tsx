@@ -92,10 +92,10 @@ export default function DebtFreeBoostPanel({
 
   if (activeDebts.length === 0) {
     return (
-      <Card className="border-green-200 bg-green-50/50 dark:border-green-900 dark:bg-green-950/20">
+      <Card className="border-success/30 bg-success/10 dark:border-success-dark dark:bg-success/5">
         <CardHeader>
           <div className="flex items-center gap-2">
-            <PartyPopper className="size-5 text-green-600" />
+            <PartyPopper className="size-5 text-success" />
             <CardTitle className="text-lg">You're Debt-Free!</CardTitle>
           </div>
           <CardDescription>
@@ -157,7 +157,7 @@ export default function DebtFreeBoostPanel({
     <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
-          <TrendingUp className="size-5 text-green-600" />
+          <TrendingUp className="size-5 text-success" />
           <CardTitle className="text-lg">Debt-Free Boost</CardTitle>
         </div>
         <CardDescription>
@@ -167,10 +167,10 @@ export default function DebtFreeBoostPanel({
 
       <CardContent className="space-y-6">
         {/* ── Summary message ──────────────────────────────────────────── */}
-        <div className="rounded-lg border border-green-200 bg-green-50/60 p-4 dark:border-green-900 dark:bg-green-950/30">
+        <div className="rounded-lg border border-success/30 bg-success/10 p-4 dark:border-success-dark dark:bg-success/5">
           <p className="text-sm">
             As your debts are paid off, you'll free up{" "}
-            <span className="font-bold text-green-700 dark:text-green-400">
+            <span className="font-bold text-success-dark dark:text-success-light">
               {formatCurrency(totalMonthlyFreed)}/month
             </span>{" "}
             in additional savings capacity.
@@ -194,7 +194,7 @@ export default function DebtFreeBoostPanel({
 
                   {/* dot */}
                   <div className="mt-1.5 flex size-6 shrink-0 items-center justify-center rounded-full border bg-background">
-                    <CalendarCheck className="size-3.5 text-green-600" />
+                    <CalendarCheck className="size-3.5 text-success" />
                   </div>
 
                   {/* content */}
@@ -272,7 +272,7 @@ export default function DebtFreeBoostPanel({
                 type="monotone"
                 dataKey="withBoost"
                 name="With Boost"
-                stroke="hsl(142.1 76.2% 36.3%)"
+                stroke="var(--color-success)"
                 strokeWidth={2}
                 dot={false}
                 activeDot={{ r: 4 }}
@@ -291,7 +291,7 @@ export default function DebtFreeBoostPanel({
             <p className="text-muted-foreground text-xs">
               Projected (w/ Boost)
             </p>
-            <p className="font-semibold text-green-600">
+            <p className="font-semibold text-success">
               {formatCurrency(
                 projection[projection.length - 1]?.withBoost ?? 0,
               )}

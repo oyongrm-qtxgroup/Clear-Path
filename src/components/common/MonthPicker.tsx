@@ -24,7 +24,7 @@ export function MonthPicker({ value, onMonthChange }: MonthPickerProps) {
   const now = useMemo(() => startOfMonth(new Date()), []);
   const current = value ? toDate(value) : now;
 
-  const canGoForward = isBefore(startOfMonth(current), now);
+  const canGoForward = isBefore(startOfMonth(current), addMonths(now, 1));
 
   function handlePrev() {
     onMonthChange(toMonthYear(subMonths(current, 1)));

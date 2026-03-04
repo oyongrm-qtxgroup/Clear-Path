@@ -127,7 +127,8 @@ function SidebarFooter() {
 function DesktopSidebar() {
   return (
     <aside className="hidden h-screen w-60 flex-col bg-gradient-to-b from-[var(--gradient-start)] to-[var(--gradient-end)] md:flex sticky top-0">
-      <div className="flex h-14 items-center px-4">
+      <div className="flex h-14 items-center gap-2 px-4">
+        <img src="/logo-192x192.png" alt="" className="h-7 w-7" />
         <span className="text-lg font-bold tracking-tight text-white">
           ClearPath
         </span>
@@ -159,9 +160,12 @@ function MobileNav() {
           className="w-60 bg-gradient-to-b from-[var(--gradient-start)] to-[var(--gradient-end)] p-0 border-none backdrop-blur-md"
         >
           <SheetHeader className="h-14 justify-center px-4">
-            <SheetTitle className="text-lg font-bold tracking-tight text-white">
-              ClearPath
-            </SheetTitle>
+            <div className="flex items-center gap-2">
+              <img src="/logo-192x192.png" alt="" className="h-7 w-7" />
+              <SheetTitle className="text-lg font-bold tracking-tight text-white">
+                ClearPath
+              </SheetTitle>
+            </div>
           </SheetHeader>
           <div className="h-px bg-white/15" />
           <div className="flex flex-1 flex-col justify-between p-3">
@@ -170,7 +174,8 @@ function MobileNav() {
           </div>
         </SheetContent>
       </Sheet>
-      <span className="ml-3 text-lg font-bold tracking-tight text-foreground">
+      <img src="/logo-192x192.png" alt="" className="ml-3 h-7 w-7" />
+      <span className="ml-2 text-lg font-bold tracking-tight text-foreground">
         ClearPath
       </span>
     </header>

@@ -216,9 +216,12 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 
         {/* Top — Logo */}
         <div className="relative z-10 p-10">
-          <span className="auth-fade-in text-2xl font-bold tracking-tight text-white">
-            ClearPath
-          </span>
+          <div className="auth-fade-in flex items-center gap-3">
+            <img src="/logo-512x512.png" alt="" className="h-10 w-10" />
+            <span className="text-2xl font-bold tracking-tight text-white">
+              ClearPath
+            </span>
+          </div>
         </div>
 
         {/* Center — Tagline + Chart + Features */}
@@ -285,6 +288,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
       <div className="bg-background flex flex-col">
         {/* Mobile brand header */}
         <div className="flex items-center gap-2 border-b border-primary/10 bg-primary/[0.03] p-4 lg:hidden">
+          <img src="/logo-192x192.png" alt="" className="h-7 w-7" />
           <span className="text-lg font-bold tracking-tight text-foreground">
             ClearPath
           </span>

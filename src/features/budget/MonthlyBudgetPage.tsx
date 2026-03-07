@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { format } from "date-fns";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { format, addMonths } from "date-fns";
 import {
   Wallet,
   Plus,
@@ -456,6 +456,7 @@ function ExtraRow({
 }) {
   const toggleMutation = useToggleBudgetExtraPaid();
   const deleteMutation = useDeleteBudgetExtra();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   function handleToggle() {
     toggleMutation.mutate({
@@ -466,7 +467,10 @@ function ExtraRow({
   }
 
   function handleDelete() {
-    deleteMutation.mutate({ id: extra.id, monthYear });
+    deleteMutation.mutate(
+      { id: extra.id, monthYear },
+      { onSuccess: () => setShowDeleteConfirm(false) },
+    );
   }
 
   return (
@@ -479,12 +483,23 @@ function ExtraRow({
           <Button
             variant="ghost"
             size="icon-sm"
-            onClick={handleDelete}
+            onClick={() => setShowDeleteConfirm(true)}
             disabled={deleteMutation.isPending}
             className="text-muted-foreground hover:text-destructive"
           >
             <Trash2 className="size-3.5" />
           </Button>
+          <ConfirmDialog
+            open={showDeleteConfirm}
+            onConfirm={handleDelete}
+            onCancel={() => setShowDeleteConfirm(false)}
+            title="Delete extra?"
+            description={`Are you sure you want to delete "${extra.name}"? This action cannot be undone.`}
+            confirmLabel="Delete"
+            destructive
+            loading={deleteMutation.isPending}
+            loadingLabel="Deleting…"
+          />
         </div>
       </TableCell>
       <TableCell>
@@ -607,6 +622,23 @@ function MonthlyBudgetPage() {
   const unskipMonthMutation = useUnskipMonth();
 
   const isSkipped = !!skippedMonth;
+
+  // Auto-advance to next month when current month is skipped on initial load
+  const isInitialMount = useRef(true);
+  useEffect(() => {
+    if (
+      !skippedLoading &&
+      isInitialMount.current &&
+      monthYear === getCurrentMonthYear() &&
+      isSkipped
+    ) {
+      const next = format(addMonths(new Date(), 1), "yyyy-MM");
+      setMonthYear(next);
+    }
+    if (!skippedLoading) {
+      isInitialMount.current = false;
+    }
+  }, [skippedLoading, isSkipped, monthYear]);
 
   // We need all debt payments for the month — fetch them per debt
   // This is handled via the individual debt payment query per debt below

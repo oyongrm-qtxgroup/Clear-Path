@@ -3,6 +3,11 @@ export { CurrencyInput } from "./CurrencyInput";
 export { EmptyState } from "./EmptyState";
 export { Illustration } from "./Illustration";
 export type { IllustrationName } from "./Illustration";
+export {
+  OnboardingWizard,
+  isOnboardingComplete,
+  resetOnboarding,
+} from "./OnboardingWizard";
 export { PasswordInput } from "./PasswordInput";
 export {
   ErrorBoundary,

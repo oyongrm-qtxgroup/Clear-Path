@@ -8,6 +8,7 @@ import { MonthlyBudgetPage } from "@/features/budget";
 import { DashboardPage } from "@/features/dashboard";
 import { DebtsPage, DebtDetailPage } from "@/features/debts";
 import { ExpensesPage } from "@/features/expenses";
+import { FAQPage } from "@/features/faq";
 import { SavingsPage } from "@/features/savings";
 import { SettingsPage, NotFoundPage } from "@/pages";
 
@@ -31,6 +32,7 @@ export const router = createBrowserRouter([
           { path: "debts/:id", element: <DebtDetailPage /> },
           { path: "expenses", element: <ExpensesPage /> },
           { path: "savings", element: <SavingsPage /> },
+          { path: "faq", element: <FAQPage /> },
           { path: "settings", element: <SettingsPage /> },
         ],
       },

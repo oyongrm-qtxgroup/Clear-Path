@@ -324,7 +324,16 @@ export function createWrappedFetch(
     init?: RequestInit,
   ): Promise<Response> {
     // ── Deduplication: return existing promise if one is in-flight ─────
-    const dedupeKey = buildDedupeKey(input, init);
+    // Auth requests are never deduplicated — they are not idempotent.
+    const rawUrl =
+      typeof input === "string"
+        ? input
+        : input instanceof URL
+          ? input.toString()
+          : input.url;
+    const dedupeKey = rawUrl.includes("/auth/")
+      ? null
+      : buildDedupeKey(input, init);
     if (dedupeKey) {
       const existing = inflightRequests.get(dedupeKey);
       if (existing) {
@@ -333,14 +342,26 @@ export function createWrappedFetch(
       }
     }
 
+    // ── Detect auth paths — exempt from throttling & deduplication ──
+    const url =
+      typeof input === "string"
+        ? input
+        : input instanceof URL
+          ? input.toString()
+          : input.url;
+    const isAuthPath = url.includes("/auth/");
+
     // ── Core execution: throttle + retry ──────────────────────────────
     const execute = async (): Promise<Response> => {
-      // — Throttle —
-      const throttleStart = Date.now();
-      await tokenBucket.acquire();
-      const throttleWait = Date.now() - throttleStart;
-      if (throttleWait > 50) {
-        apiHealthTracker.recordThrottle();
+      // — Throttle (skip for auth requests) —
+      let throttleWait = 0;
+      if (!isAuthPath) {
+        const throttleStart = Date.now();
+        await tokenBucket.acquire();
+        throttleWait = Date.now() - throttleStart;
+        if (throttleWait > 50) {
+          apiHealthTracker.recordThrottle();
+        }
       }
 
       // — Retry loop —

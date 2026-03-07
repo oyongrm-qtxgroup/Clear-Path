@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -6,13 +6,19 @@ import {
   CreditCard,
   Receipt,
   PiggyBank,
+  HelpCircle,
   Settings,
   LogOut,
   Menu,
 } from "lucide-react";
 
 import { useAuth, useNetworkStatus, useProfile } from "@/hooks";
-import { PreDeploymentChecklist, ConfirmDialog } from "@/components/common";
+import {
+  PreDeploymentChecklist,
+  ConfirmDialog,
+  OnboardingWizard,
+  isOnboardingComplete,
+} from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -31,6 +37,7 @@ const NAV_ITEMS = [
   { to: "/debts", label: "Debts", icon: CreditCard },
   { to: "/expenses", label: "Expenses", icon: Receipt },
   { to: "/savings", label: "Savings", icon: PiggyBank },
+  { to: "/faq", label: "FAQ", icon: HelpCircle },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
@@ -187,6 +194,20 @@ export function AppLayout() {
   // Surface offline / online toast notifications app-wide
   useNetworkStatus();
 
+  const { profile } = useProfile();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (profile === undefined) return; // still loading
+    // Show onboarding if not completed AND user appears to be new (no income set)
+    if (
+      !isOnboardingComplete() &&
+      (profile === null || !profile.monthly_income)
+    ) {
+      setShowOnboarding(true);
+    }
+  }, [profile]);
+
   return (
     <div className="flex min-h-screen">
       <DesktopSidebar />
@@ -197,6 +218,10 @@ export function AppLayout() {
         </main>
       </div>
       <PreDeploymentChecklist />
+      <OnboardingWizard
+        open={showOnboarding}
+        onComplete={() => setShowOnboarding(false)}
+      />
     </div>
   );
 }

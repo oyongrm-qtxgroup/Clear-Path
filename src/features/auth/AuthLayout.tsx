@@ -28,146 +28,6 @@ function FloatingIcon({
   );
 }
 
-// ── Animated SVG chart illustration ──────────────────────────────────────────
-function ChartIllustration() {
-  return (
-    <div className="relative mx-auto w-full max-w-xs">
-      <svg viewBox="0 0 320 200" fill="none" className="w-full drop-shadow-2xl">
-        {/* Grid lines */}
-        {[40, 80, 120, 160].map((y) => (
-          <line
-            key={y}
-            x1="40"
-            y1={y}
-            x2="300"
-            y2={y}
-            stroke="rgba(255,255,255,0.06)"
-            strokeDasharray="4 4"
-          />
-        ))}
-
-        {/* Debt line going DOWN (good!) — draws in */}
-        <polyline
-          points="40,40 90,55 140,80 190,115 240,140 290,170"
-          fill="none"
-          stroke="rgba(220,38,38,0.7)"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="auth-line-draw"
-          strokeDasharray="500"
-          strokeDashoffset="500"
-        />
-        {/* Debt dots */}
-        {[
-          [40, 40],
-          [90, 55],
-          [140, 80],
-          [190, 115],
-          [240, 140],
-          [290, 170],
-        ].map(([cx, cy], i) => (
-          <circle
-            key={`d${i}`}
-            cx={cx}
-            cy={cy}
-            r="3.5"
-            fill="#dc2626"
-            className="auth-dot-pop"
-            style={{ animationDelay: `${1.2 + i * 0.15}s` }}
-          />
-        ))}
-
-        {/* Savings line going UP — draws in */}
-        <polyline
-          points="40,170 90,155 140,130 190,100 240,65 290,35"
-          fill="none"
-          stroke="rgba(0,250,195,0.8)"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="auth-line-draw"
-          strokeDasharray="500"
-          strokeDashoffset="500"
-          style={{ animationDelay: "0.3s" }}
-        />
-        {/* Savings area gradient */}
-        <defs>
-          <linearGradient id="savingsGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="rgba(0,250,195,0.25)" />
-            <stop offset="100%" stopColor="rgba(0,250,195,0)" />
-          </linearGradient>
-        </defs>
-        <polygon
-          points="40,170 90,155 140,130 190,100 240,65 290,35 290,170"
-          fill="url(#savingsGrad)"
-          className="auth-area-fade"
-        />
-        {/* Savings dots */}
-        {[
-          [40, 170],
-          [90, 155],
-          [140, 130],
-          [190, 100],
-          [240, 65],
-          [290, 35],
-        ].map(([cx, cy], i) => (
-          <circle
-            key={`s${i}`}
-            cx={cx}
-            cy={cy}
-            r="3.5"
-            fill="#00FAC3"
-            className="auth-dot-pop"
-            style={{ animationDelay: `${1.5 + i * 0.15}s` }}
-          />
-        ))}
-
-        {/* Labels */}
-        <text
-          x="295"
-          y="28"
-          fontSize="10"
-          fill="#00FAC3"
-          fontWeight="600"
-          textAnchor="end"
-          className="auth-fade-in"
-          style={{ animationDelay: "2.2s" }}
-        >
-          Savings ↑
-        </text>
-        <text
-          x="295"
-          y="185"
-          fontSize="10"
-          fill="#dc2626"
-          fontWeight="600"
-          textAnchor="end"
-          className="auth-fade-in"
-          style={{ animationDelay: "2.4s" }}
-        >
-          Debt ↓
-        </text>
-      </svg>
-
-      {/* Legend card */}
-      <div
-        className="auth-fade-in-up mx-auto -mt-2 flex w-fit items-center gap-4 rounded-lg bg-white/10 px-4 py-2 text-[11px] backdrop-blur-sm"
-        style={{ animationDelay: "2s" }}
-      >
-        <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-brand-light" />
-          <span className="text-white/80">Savings</span>
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-danger" />
-          <span className="text-white/80">Debt</span>
-        </span>
-      </div>
-    </div>
-  );
-}
-
 const FEATURES = [
   {
     icon: TrendingDown,
@@ -243,14 +103,13 @@ export function AuthLayout({ children }: AuthLayoutProps) {
             </p>
           </div>
 
-          {/* Auth illustration + Chart illustration */}
-          <div className="auth-fade-in-up flex flex-col items-center gap-4">
+          {/* Auth illustration */}
+          <div className="auth-fade-in-up flex flex-col items-center">
             <Illustration
               name="auth"
               size="lg"
               className="text-white/30 dark:text-white/20"
             />
-            <ChartIllustration />
           </div>
 
           <div className="space-y-3">

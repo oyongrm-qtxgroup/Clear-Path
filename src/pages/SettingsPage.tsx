@@ -18,6 +18,7 @@ import {
   LogOut,
   Trash2,
   Wallet,
+  RotateCcw,
 } from "lucide-react";
 
 import { useAuth, useProfile } from "@/hooks";
@@ -34,6 +35,7 @@ import {
   ConfirmDialog,
   PasswordInput,
   CurrencyInput,
+  resetOnboarding,
 } from "@/components/common";
 import { withErrorBoundary } from "@/components/common";
 import { Button } from "@/components/ui/button";
@@ -754,6 +756,35 @@ function SettingsPage() {
         {/* Security & Data Export — medium content, side by side */}
         <SecuritySection />
         <DataExportSection />
+
+        {/* Onboarding — restart */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <RotateCcw className="size-5 text-primary" />
+              <div>
+                <CardTitle>Onboarding</CardTitle>
+                <CardDescription>
+                  Re-run the getting started wizard
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Button
+              variant="outline"
+              onClick={() => {
+                resetOnboarding();
+                toast.success(
+                  "Onboarding reset! It will show on your next page load.",
+                );
+              }}
+            >
+              <RotateCcw className="mr-2 size-4" />
+              Restart Onboarding
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* Account — danger zone, full width */}
         <div className="lg:col-span-2">

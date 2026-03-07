@@ -54,12 +54,8 @@ function LoginPage() {
       return;
     }
 
-    try {
-      const success = await signIn(values.email, values.password);
-      if (success) navigate("/dashboard");
-    } catch {
-      // signIn already shows a toast with the error message.
-    }
+    const success = await signIn(values.email, values.password);
+    if (success) navigate("/dashboard");
   }
 
   return (

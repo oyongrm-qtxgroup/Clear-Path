@@ -29,6 +29,12 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   global: {
     fetch: wrappedFetch,
   },
+  auth: {
+    flowType: "pkce",
+    detectSessionInUrl: true,
+    persistSession: true,
+    storageKey: "clearpath-auth-token",
+  },
 });
 
 /**

@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
+import { useSkipAwareMonth } from "@/hooks";
 import { PiggyBank, Plus, ChevronDown } from "lucide-react";
 
 import { SORT_METHODS } from "@/constants";
 import type { Debt } from "@/schemas/debt.schema";
 import { useDebts, useAllDebtPaymentsForMonth } from "@/hooks/useDebts";
 import { useDebtFreeConfetti } from "@/hooks/useDebtFreeConfetti";
-import { formatCurrency, getCurrentMonthYear } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 
 import {
   PageHeader,
@@ -99,7 +100,7 @@ function DebtsPageSkeleton() {
 
 function DebtsPage() {
   const { data: debts, isLoading } = useDebts();
-  const [monthYear, setMonthYear] = useState(getCurrentMonthYear);
+  const { monthYear, setMonthYear } = useSkipAwareMonth();
   const { data: paymentMap } = useAllDebtPaymentsForMonth(monthYear);
 
   const [dialogOpen, setDialogOpen] = useState(false);

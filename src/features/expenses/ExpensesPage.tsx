@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useSkipAwareMonth } from "@/hooks";
 import { ChevronDown, Loader2, Plus, Receipt } from "lucide-react";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,7 +15,7 @@ import {
   useExpenseChecks,
   useCreateExpense,
 } from "@/hooks/useExpenses";
-import { formatCurrency, getCurrentMonthYear } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 
 import {
   PageHeader,
@@ -333,7 +334,7 @@ function AddExpenseForm({ onSuccess }: { onSuccess: () => void }) {
 
 function ExpensesPage() {
   const { data: expenses, isLoading: loadingExpenses } = useExpenses();
-  const [monthYear, setMonthYear] = useState(getCurrentMonthYear);
+  const { monthYear, setMonthYear } = useSkipAwareMonth();
   const { data: checks, isLoading: loadingChecks } =
     useExpenseChecks(monthYear);
   const [isAddOpen, setIsAddOpen] = useState(false);

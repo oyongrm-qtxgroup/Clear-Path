@@ -1,5 +1,5 @@
-import { useState, useMemo, useRef, useEffect } from "react";
-import { format, addMonths } from "date-fns";
+import { useState, useMemo } from "react";
+import { format } from "date-fns";
 import {
   Wallet,
   Plus,
@@ -28,12 +28,12 @@ import {
   useUpsertIncomeOverride,
   useDeleteIncomeOverride,
   useAllDebtPaymentsForMonth,
-  useSkippedMonth,
   useSkipMonth,
   useUnskipMonth,
+  useSkipAwareMonth,
 } from "@/hooks";
 import { DEBT_TYPES, EXPENSE_CATEGORIES } from "@/constants";
-import { formatCurrency, getCurrentMonthYear } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import {
   PageHeader,
   MonthPicker,
@@ -603,7 +603,8 @@ function SkippedMonthBanner({
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 function MonthlyBudgetPage() {
-  const [monthYear, setMonthYear] = useState(getCurrentMonthYear);
+  const { monthYear, setMonthYear, isSkipped, skippedLoading } =
+    useSkipAwareMonth();
   const [showSkipConfirm, setShowSkipConfirm] = useState(false);
 
   // Data queries
@@ -615,33 +616,9 @@ function MonthlyBudgetPage() {
   const { data: extras, isLoading: extrasLoading } = useBudgetExtras(monthYear);
   const { data: incomeOverride, isLoading: incomeLoading } =
     useIncomeOverride(monthYear);
-  const { data: skippedMonth, isLoading: skippedLoading } =
-    useSkippedMonth(monthYear);
 
   const skipMonthMutation = useSkipMonth();
   const unskipMonthMutation = useUnskipMonth();
-
-  const isSkipped = !!skippedMonth;
-
-  // Auto-advance to next month when current month is skipped on initial load
-  const isInitialMount = useRef(true);
-  useEffect(() => {
-    if (
-      !skippedLoading &&
-      isInitialMount.current &&
-      monthYear === getCurrentMonthYear() &&
-      isSkipped
-    ) {
-      const next = format(addMonths(new Date(), 1), "yyyy-MM");
-      setMonthYear(next);
-    }
-    if (!skippedLoading) {
-      isInitialMount.current = false;
-    }
-  }, [skippedLoading, isSkipped, monthYear]);
-
-  // We need all debt payments for the month — fetch them per debt
-  // This is handled via the individual debt payment query per debt below
 
   const isLoading =
     debtsLoading ||

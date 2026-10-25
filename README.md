@@ -146,4 +146,4 @@ The app is configured for **Vercel** with SPA rewrites. Push to your connected b
 
 ## License
 
-This project is private.
+MIT, see [LICENSE](LICENSE).
